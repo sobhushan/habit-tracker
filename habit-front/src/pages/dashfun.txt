@@ -1,0 +1,116 @@
+// Logout Function
+  const handleLogout = () => {
+    alert("Logged out!");
+    window.location.href = "/";
+  };
+
+  // Toggle Complete Button
+  const handleToggleComplete = (id: number) => {
+    const confirmComplete = window.confirm("Are you sure ?");
+    if (confirmComplete) {
+      setHabits(
+        habits.map((habit) =>
+          habit.id === id
+            ? {
+                ...habit,
+                status: habit.status === "Completed" ? "Pending" : "Completed",
+                streak: habit.status === "Completed" ? habit.streak - 1 : habit.streak + 1,
+              }
+            : habit
+        )
+      );
+    }
+  };
+
+  // Delete Function
+  const handleDeleteHabit = (id: number) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this habit?");
+    if (confirmDelete) {
+      setHabits(habits.filter((habit) => habit.id !== id));
+    }
+  };
+
+// ADD FUNCTION
+  const addHabit = () => {
+    if (newHabit.title.trim() === "") {
+      alert("Habit title cannot be empty!");
+      return;
+    }
+
+    const habit = {
+      id: habits.length + 1,
+      title: newHabit.title,
+      description: newHabit.description,
+      frequency: newHabit.frequency,
+      timeRequired: newHabit.timeRequired,
+      streak: 0,
+      status: "Pending",
+    };
+
+    setHabits([...habits, habit]);
+    setNewHabit({ title: "", description: "", frequency: "Daily", timeRequired: "" });
+    setShowAddModal(false);
+  };
+  
+
+  // Edit Funtion
+  const handleEditHabit = (habit: any) => {
+    console.log("index:",habit)
+    console.log({...habit})
+    console.log("edit:",editHabit.title);
+    console.log("hab:",habit.title);
+
+    setShowEditModal(true);
+    setEditHabit({...habit});
+  };
+  
+  const updateHabit = () => {
+    if (!editHabit || editHabit.title.trim() === "") {
+      alert("Habit title cannot be empty!");
+      return;
+    }
+    const updatedHabits = habits.map((habit) =>
+      // habit.id === editHabit.id ? { ...habit, ...editHabit } : habit
+    habit.id === editHabit.id ? { ...editHabit } : habit
+    );
+  
+    setHabits(updatedHabits); 
+    setEditHabit(null);
+    setShowEditModal(false);
+  };
+
+
+  //------------------
+  // export async function DELETE(req: NextRequest) {
+//     try {
+//         const { habit_id } = await req.json();
+//         console.log("Deleting habit with ID:", habit_id);
+//         await pool.query("DELETE FROM habits WHERE id = ?", [habit_id]);
+        
+//         return NextResponse.json({ message: "Habit deleted successfully" }, { status: 200 });
+//     } catch (error) {
+//         return NextResponse.json({ error: "Database error" }, { status: 500 });
+//     }
+// }
+
+export async function PUT(req: NextRequest) {
+
+
+            SELECT 
+                h.habit_id, 
+                h.title, 
+                h.description, 
+                h.frequency, 
+                h.time_req, 
+                COALESCE(MAX(hl.status), FALSE) AS status,
+                COALESCE(MAX(sl.streak_count), 0) AS streak_count
+            FROM 
+                habits h
+            LEFT JOIN 
+                habitlog hl ON h.habit_id = hl.habit_id AND hl.user_id = ? 
+            LEFT JOIN 
+                streaklog sl ON h.habit_id = sl.habit_id AND sl.user_id = ?
+            WHERE 
+                h.user_id = ?
+            GROUP BY 
+                h.habit_id
