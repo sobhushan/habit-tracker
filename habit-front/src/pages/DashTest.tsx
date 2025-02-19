@@ -258,7 +258,7 @@ const Dashboard = () => {
                 <Link className="list-group-item" to="/statistics">
                   📊 Statistics
                 </Link>
-                <Link className="list-group-item" to="/rewards">
+                <Link className="list-group-item" to="/events">
                   🏆 Rewards
                 </Link>
               </ul>

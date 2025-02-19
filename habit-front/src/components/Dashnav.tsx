@@ -21,11 +21,13 @@ const Dashnav = () => {
           <Link className="navbar-brand text-dark fw-bold" to="/">
             Habit Tracker
           </Link>
+          <Link className="nav-link" to="/">Signout</Link>
           <div className="collapse navbar-collapse">
            <ul className="navbar-nav ms-auto">
-             <li className="nav-item">
+             {/* <li className="nav-item">
                <Link className="nav-link" to="/">Signout</Link>
-             </li>
+             </li> */}
+             <button className="btn btn-outline-light">Signout</button>
            </ul>
          </div>
         </div>
@@ -34,4 +36,4 @@ const Dashnav = () => {
   )
 }
 
-export default Dashnav
+export default Dashnav;

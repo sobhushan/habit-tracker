@@ -33,7 +33,6 @@ export async function GET(req: NextRequest) {
         if (!userId) {
             return NextResponse.json({ error: "User ID is required" }, { status: 400 });
         }
-        console.log("get request")
 
         // Fetch habits, status (from the latest habitlog), and streak count (from streaklog)
         const [habits] = await pool.query(`
@@ -42,7 +41,8 @@ export async function GET(req: NextRequest) {
                 h.title, 
                 h.description, 
                 h.frequency, 
-                h.time_req, 
+                h.time_req,
+                h.created_at, 
                 COALESCE(
                     (SELECT status 
                     FROM habitlog hl 
@@ -61,6 +61,8 @@ export async function GET(req: NextRequest) {
             GROUP BY 
                 h.habit_id
         `, [userId, userId, userId]);
+
+        console.log("get request: ",habits);    
 
         return NextResponse.json(habits, { status: 200, headers: { "Access-Control-Allow-Origin": allowedOrigin } });
     } catch (error: unknown) {  
