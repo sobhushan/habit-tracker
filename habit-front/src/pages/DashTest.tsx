@@ -80,64 +80,111 @@ const Dashboard = () => {
   };
 
   // Toggle Complete Button
-  const handleToggleComplete = async (habit_id: number) => {
+  // const handleToggleComplete = async (habit_id: number) => {
+  //   const confirmComplete = window.confirm("Are you sure?");
+  //   if (!confirmComplete) return;
+  
+  //   const user_id = parseInt(localStorage.getItem("user_id") || "0", 10);
+  //   const habitToUpdate = habits.find((habit) => habit.habit_id === habit_id);
+  //   if (!habitToUpdate) return;
+  
+  //   // Toggle status
+  //   // const isCompleted = habitToUpdate.status !== "Completed"; // Toggle status
+  //   const isCompleted = habitToUpdate.status === "Completed" ? "Pending" : "Completed"
+  //   // const updatedStreak = habitToUpdate.status === "Completed" ? habitToUpdate.streak - 1 : habitToUpdate.streak + 1,
+  //   try {
+  //     console.log('Payload to be sent habitlog:', {
+  //       user_id: user_id,
+  //       habit_id: habitToUpdate.habit_id,
+  //       status: isCompleted
+  //     });
+  //     // Update habitlog for status
+  //     const habitLogResponse = await axios.put("http://localhost:3000/api/habitlog", {
+  //       user_id: user_id,
+  //       habit_id: habitToUpdate.habit_id,
+  //       status: isCompleted,
+  //     }, {
+  //       headers: { "Content-Type": "application/json" },
+  //     });
+  
+  //     if (habitLogResponse.status === 200) {
+  //       console.log('Payload to be sent streaklog:', {
+  //         user_id: user_id,
+  //         habit_id: habitToUpdate.habit_id,
+  //         status: isCompleted
+  //       });
+  //       // Update streaklog for streak count
+  //       const streakLogResponse = await axios.post("http://localhost:3000/api/streaklog", {
+  //         user_id: user_id,
+  //         habit_id: habitToUpdate.habit_id,
+  //         status: isCompleted,
+  //       }, {
+  //         headers: { "Content-Type": "application/json" },
+  //       });
+  
+  //       if (streakLogResponse.status === 200) {
+  //         // Update the state with the new streak and status
+  //         const updatedStreak = streakLogResponse.data.streak_count;
+  //         const updatedHabits = habits.map((habit) =>
+  //           habit.habit_id === habit_id ? { ...habit, status: isCompleted, streak: updatedStreak } : habit
+  //         );
+  //         setHabits(updatedHabits);
+  //         console.log("updated streak: ",updatedHabits)
+  //       }
+  //     }
+      
+  //   } catch (error) {
+  //     console.error("Error updating habit status and streak:", error);
+  //   }
+  // };
+  
+  const handleToggleComplete = async (habit_id: number, status: string) => {
     const confirmComplete = window.confirm("Are you sure?");
     if (!confirmComplete) return;
   
     const user_id = parseInt(localStorage.getItem("user_id") || "0", 10);
     const habitToUpdate = habits.find((habit) => habit.habit_id === habit_id);
     if (!habitToUpdate) return;
-  
-    // Toggle status
-    // const isCompleted = habitToUpdate.status !== "Completed"; // Toggle status
-    const isCompleted = habitToUpdate.status === "Completed" ? "Pending" : "Completed"
-    // const updatedStreak = habitToUpdate.status === "Completed" ? habitToUpdate.streak - 1 : habitToUpdate.streak + 1,
+
     try {
-      console.log('Payload to be sent habitlog:', {
-        user_id: user_id,
-        habit_id: habitToUpdate.habit_id,
-        status: isCompleted
+      const newStatus = status === "Completed" ? "Pending" : "Completed";
+      
+      await axios.put("http://localhost:3000/api/habitlog", {
+        user_id,
+        habit_id,
+        status: newStatus,
       });
-      // Update habitlog for status
-      const habitLogResponse = await axios.post("http://localhost:3000/api/habitlog", {
-        user_id: user_id,
-        habit_id: habitToUpdate.habit_id,
-        status: isCompleted,
-      }, {
-        headers: { "Content-Type": "application/json" },
+
+      const streakLogResponse = await axios.get("http://localhost:3000/api/streaklog", {
+        params: { habit_id, user_id },
       });
-  
-      if (habitLogResponse.status === 200) {
-        console.log('Payload to be sent streaklog:', {
-          user_id: user_id,
-          habit_id: habitToUpdate.habit_id,
-          status: isCompleted
-        });
-        // Update streaklog for streak count
-        const streakLogResponse = await axios.post("http://localhost:3000/api/streaklog", {
-          user_id: user_id,
-          habit_id: habitToUpdate.habit_id,
-          status: isCompleted,
-        }, {
-          headers: { "Content-Type": "application/json" },
-        });
-  
-        if (streakLogResponse.status === 200) {
-          // Update the state with the new streak and status
-          const updatedStreak = streakLogResponse.data.streak_count;
-          const updatedHabits = habits.map((habit) =>
-            habit.habit_id === habit_id ? { ...habit, status: isCompleted, streak: updatedStreak } : habit
-          );
-          setHabits(updatedHabits);
-        }
-      }
+      
+      // await axios.put("http://localhost:3000/api/streaklog", {
+      //    user_id, habit_id, status, date
+      // });
+
+      console.log('Get from streaklog:', {
+                user_id: user_id,
+                habit_id: habit_id,
+                status: newStatus,
+                streak: streakLogResponse.data
+              });
+      const updatedStreak = streakLogResponse.data.streak_count;
+      
+      setHabits((prevHabits) =>
+        prevHabits.map((habit) =>
+          habit.habit_id === habit_id
+            ? { ...habit, status: newStatus, streak: updatedStreak }
+            : habit
+        )
+      );
     } catch (error) {
-      console.error("Error updating habit status and streak:", error);
+      console.error("Error updating habit status:", error);
     }
   };
   
 
-  // Delete Function
+  // // Delete Function
   const handleDeleteHabit = async (habit_id: number) => {
     const confirmDelete = window.confirm("Are you sure you want to delete this habit?");
     if (!confirmDelete) return;
@@ -281,7 +328,7 @@ const Dashboard = () => {
               {/* Habit List - Single Column */}
               <div className="row">
                 {habits.map((habit) => (
-                  <div key={habit.id} className="col-12 mb-3">
+                  <div key={habit.habit_id} className="col-12 mb-3">
                     <div className="card p-3">
                       <h3>{habit.title}</h3>
                       <h5>{habit.description}</h5>
@@ -293,7 +340,7 @@ const Dashboard = () => {
                       <div className="d-flex justify-content-between mt-2">
                       <button
                           className={`btn ${habit.status === "Completed" ? "btn-secondary" : "btn-success"}`}
-                          onClick={() => handleToggleComplete(habit.habit_id)}
+                          onClick={() => handleToggleComplete( habit.habit_id, habit.status)}
                         >
                           {habit.status === "Completed" ? "🔄 Mark as Incomplete" : "✅ Mark as Complete"}
                         </button>

@@ -1,7 +1,7 @@
 //src/pages/Statistics.tsx
 import { useState} from "react";
 // import axios from "axios";
-import { format, addMonths, subMonths } from "date-fns";
+import { format, addMonths, subMonths,  } from "date-fns";
 import Calendar from "../components/Calendar/Calendar";
 import Dashnav from "../components/Dashnav";
 import Habitview from "../components/Habitview";
@@ -17,6 +17,11 @@ const Statistics = () => {
   const goToToday = () => setSelectedDate(new Date());
   const goToPrevMonth = () => setSelectedDate(subMonths(selectedDate, 1));
   const goToNextMonth = () => setSelectedDate(addMonths(selectedDate, 1));
+
+  const handleDateChange = (date: Date) => {
+    console.log("Clicked date:", format(date, "yyyy-MM-dd"));
+    // setSelectedDate(date); // Update selected date if needed
+  };
 
   return (
     <>
@@ -65,10 +70,10 @@ const Statistics = () => {
                   </div>
                 </span>
             </div>
-            <div>
+            <div className="card-body">
             <Habitview 
               value={selectedDate} 
-              onChange={() => console.log("something:",new Date())} 
+              onChange={handleDateChange} 
               user_id={Number(localStorage.getItem("user_id"))} 
             />
             </div>  

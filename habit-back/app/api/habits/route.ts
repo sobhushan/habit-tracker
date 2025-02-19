@@ -34,8 +34,63 @@ export async function GET(req: NextRequest) {
             return NextResponse.json({ error: "User ID is required" }, { status: 400 });
         }
 
-        // Fetch habits, status (from the latest habitlog), and streak count (from streaklog)
+        // // Fetch habits, status (from the latest habitlog), and streak count (from streaklog)
+        // const [habits] = await pool.query(`
+        //     SELECT 
+        //         h.habit_id, 
+        //         h.title, 
+        //         h.description, 
+        //         h.frequency, 
+        //         h.time_req,
+        //         h.created_at, 
+        //         COALESCE(
+        //             (SELECT status 
+        //             FROM habitlog hl 
+        //             WHERE hl.habit_id = h.habit_id 
+        //             AND hl.user_id = ? 
+        //             ORDER BY hl.date DESC 
+        //             LIMIT 1), 
+        //         'Pending') AS status,
+        //         COALESCE(MAX(sl.streak_count), 0) AS streak
+        //     FROM 
+        //         habits h
+        //     LEFT JOIN 
+        //         streaklog sl ON h.habit_id = sl.habit_id AND sl.user_id = ?
+        //     WHERE 
+        //         h.user_id = ?
+        //     GROUP BY 
+        //         h.habit_id
+        // `, [userId, userId, userId]);
+
+        // console.log("get request: ",habits);   
+        
+        // Fetch habits with latest status and streak calculation
         const [habits] = await pool.query(`
+            WITH latest_status AS (
+                SELECT 
+                    habit_id,
+                    status,
+                    ROW_NUMBER() OVER (PARTITION BY habit_id ORDER BY date DESC) AS rn
+                FROM habitlog
+                WHERE user_id = ?
+            ),
+            streak_data AS (
+                SELECT 
+                    habit_id,
+                    COUNT(*) AS streak_count
+                FROM (
+                    SELECT 
+                        habit_id,
+                        date,
+                        status,
+                        LAG(date) OVER (PARTITION BY habit_id ORDER BY date DESC) AS prev_date
+                    FROM habitlog
+                    WHERE user_id = ?
+                ) habit_dates
+                WHERE status = 'Completed' 
+                AND (prev_date IS NULL OR DATEDIFF(prev_date, date) = 1)
+                GROUP BY habit_id
+            )
             SELECT 
                 h.habit_id, 
                 h.title, 
@@ -43,26 +98,17 @@ export async function GET(req: NextRequest) {
                 h.frequency, 
                 h.time_req,
                 h.created_at, 
-                COALESCE(
-                    (SELECT status 
-                    FROM habitlog hl 
-                    WHERE hl.habit_id = h.habit_id 
-                    AND hl.user_id = ? 
-                    ORDER BY hl.date DESC 
-                    LIMIT 1), 
-                'Pending') AS status,
-                COALESCE(MAX(sl.streak_count), 0) AS streak
+                COALESCE(ls.status, 'Pending') AS status,
+                COALESCE(sd.streak_count, 0) AS streak
             FROM 
                 habits h
             LEFT JOIN 
-                streaklog sl ON h.habit_id = sl.habit_id AND sl.user_id = ?
+                latest_status ls ON h.habit_id = ls.habit_id AND ls.rn = 1
+            LEFT JOIN 
+                streak_data sd ON h.habit_id = sd.habit_id
             WHERE 
                 h.user_id = ?
-            GROUP BY 
-                h.habit_id
         `, [userId, userId, userId]);
-
-        console.log("get request: ",habits);    
 
         return NextResponse.json(habits, { status: 200, headers: { "Access-Control-Allow-Origin": allowedOrigin } });
     } catch (error: unknown) {  
@@ -74,9 +120,16 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
     try {
         const { user_id, title, description, frequency, time_req } = await req.json();
-        await pool.query(
+        const [habitResult]: any =await pool.query(
             "INSERT INTO habits (user_id, title, description, frequency, time_req, created_at) VALUES (?, ?, ?, ?, ?, NOW())",
             [user_id, title, description, frequency, time_req]
+        );
+        const habit_id = habitResult.insertId;
+
+        // Insert into habitlog with default "Pending" status
+        await pool.query(
+        "INSERT INTO habitlog (user_id, habit_id, status, date) VALUES (?, ?, 'Pending', NOW())",
+        [user_id, habit_id]
         );
         return NextResponse.json({ message: "Habit added successfully" }, { status: 201 });
     } catch (error) {

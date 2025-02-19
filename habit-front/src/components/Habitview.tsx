@@ -289,11 +289,11 @@ interface Habit {
   habit_id: number;
   user_id: number;
   title: string;
-  description: string;
-  frequency: string;
-  time_req: string;
+  description?: string;
+  frequency?: string;
+  time_req?: string;
   status: string; // "Completed" or "Pending"
-  created_at: string | Date | null;  // Handles different formats
+  created_at: string | Date | null;  
 }
 
 interface Props {
@@ -303,35 +303,34 @@ interface Props {
 }
 
 const Habitview: React.FC<Props> = ({ value = new Date(), onChange, user_id }) => {
-  const [habitStatus, setHabitStatus] = useState<Record<string, Habit[]>>({});  // Store full habit data per date
+  const [habitStatus, setHabitStatus] = useState<Record<string, Habit[]>>({});
 
   useEffect(() => {
     const fetchHabits = async () => {
       try {
         const response = await axios.get(`http://localhost:3000/api/statuslog?user_id=${user_id}`);
         const habits = response.data;
-        console.log("Fetched habits data:", habits);
+        console.log("📌 Fetched habits data:", habits);
+
+        if (!habits || Object.keys(habits).length === 0) {
+          console.warn("⚠️ No habit data received");
+          return;
+        }
+
         const statusMap: Record<string, Habit[]> = {};
 
-        // Iterate over the keys (dates) and the associated habit data
         Object.keys(habits).forEach((dateKey) => {
-          const habitsForDate = habits[dateKey]; // This is an array of habit objects for a particular date
+          const habitsForDate = habits[dateKey];
 
-          // Ensure habitsForDate is an array before proceeding
           if (Array.isArray(habitsForDate)) {
-            habitsForDate.forEach((habit: Habit) => {
-              // Format the habit data and store it
-              if (!statusMap[dateKey]) {
-                statusMap[dateKey] = [];
-              }
-              statusMap[dateKey].push(habit);
-            });
+            statusMap[dateKey] = [...habitsForDate]; // Ensure state updates correctly
           }
         });
 
-        setHabitStatus(statusMap);
+        console.log("✅ Final statusMap before setting state:", statusMap);
+        setHabitStatus({ ...statusMap }); // Force React to detect state change
       } catch (error) {
-        console.error("Error fetching habits:", error);
+        console.error("❌ Error fetching habits:", error);
       }
     };
 
@@ -358,15 +357,13 @@ const Habitview: React.FC<Props> = ({ value = new Date(), onChange, user_id }) =
 
         {/* Calendar Grid */}
         <div className="grid grid-cols-7 gap-2">
-          {emptySlotsStart.map((_, i) => (
-            <div key={`empty-start-${i}`} />
-          ))}
+          {emptySlotsStart.map((_, i) => <div key={`empty-start-${i}`} />)}
 
           {daysInMonth.map((day) => {
-            const dateKey = format(day, "yyyy-MM-dd");
-            const habits = habitStatus[dateKey] || []; // Get habits for the current day
+            const dateKey = format(day, "yyyy-MM-dd"); // Match backend format
+            const habits = habitStatus[dateKey] || [];
             const isActive = isSameDay(day, value);
-            const isPast = isAfter(day, new Date()); // Check if the date is in the future
+            const isPast = isAfter(day, new Date());
 
             return (
               <div
@@ -379,7 +376,7 @@ const Habitview: React.FC<Props> = ({ value = new Date(), onChange, user_id }) =
                   {habits.length > 0 ? (
                     habits.map((habit, index) => {
                       const habitStatusColor = isPast
-                        ? 'bg-gray-300' // For future dates
+                        ? 'bg-gray-300'
                         : habit.status === 'Completed'
                           ? 'bg-green-500'
                           : habit.status === 'Pending'
@@ -388,7 +385,7 @@ const Habitview: React.FC<Props> = ({ value = new Date(), onChange, user_id }) =
 
                       return (
                         <div key={index} className={`p-2 rounded text-white mb-1 ${habitStatusColor}`}>
-                          {habit.title} {/* Render habit title here */}
+                          {habit.title}
                         </div>
                       );
                     })
@@ -400,9 +397,7 @@ const Habitview: React.FC<Props> = ({ value = new Date(), onChange, user_id }) =
             );
           })}
 
-          {emptySlotsEnd.map((_, i) => (
-            <div key={`empty-end-${i}`} />
-          ))}
+          {emptySlotsEnd.map((_, i) => <div key={`empty-end-${i}`} />)}
         </div>
       </div>
     </div>
@@ -410,6 +405,7 @@ const Habitview: React.FC<Props> = ({ value = new Date(), onChange, user_id }) =
 };
 
 export default Habitview;
+
 
 
 
