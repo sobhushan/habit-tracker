@@ -194,9 +194,9 @@ const Calendar: React.FC<Props> = ({ value = new Date(), onChange, user_id }) =>
   const nextYear = () => onChange(addMonths(value, 12));
 
   return (
-    <div className="w-full h-screen flex flex-col items-center">
-      <div className="w-full max-w-5xl border p-4">
-        <div className="grid grid-cols-7 items-center text-center">
+    <div className="w-full flex flex-col items-center">
+      <div className="w-full max-w-5xl border p-4 bg-blue-200">
+        <div className="grid grid-cols-7 items-center text-center bg-blue-50">
           <Cell onClick={prevYear}>{"<<"}</Cell>
           <Cell onClick={prevMonth}>{"<"}</Cell>
           <Cell className="col-span-3 text-xl font-bold">{format(value, "MMMM yyyy")}</Cell>

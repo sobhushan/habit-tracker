@@ -21,15 +21,11 @@ const Dashnav = () => {
           <Link className="navbar-brand text-dark fw-bold" to="/">
             Habit Tracker
           </Link>
-          <Link className="nav-link" to="/">Signout</Link>
-          <div className="collapse navbar-collapse">
-           <ul className="navbar-nav ms-auto">
-             {/* <li className="nav-item">
-               <Link className="nav-link" to="/">Signout</Link>
-             </li> */}
-             <button className="btn btn-outline-light">Signout</button>
-           </ul>
-         </div>
+        <div className="d-flex">
+        <Link to="/dashboard" className="btn btn-outine-dark">Dashboard</Link>
+        <Link to="/" className="btn btn-outine-dark">Logout</Link>
+        </div>
+          
         </div>
       </nav>
     </div>

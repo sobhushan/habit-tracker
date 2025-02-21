@@ -298,13 +298,15 @@ interface Habit {
 
 interface Props {
   value?: Date;
-  onChange: (value: Date) => void;
+  // onChange: (value: Date) => void;
+  onChange: (event: React.MouseEvent<HTMLDivElement>, value: Date) => void;
   user_id: number;
 }
 
 const Habitview: React.FC<Props> = ({ value = new Date(), onChange, user_id }) => {
   const [habitStatus, setHabitStatus] = useState<Record<string, Habit[]>>({});
 
+  
   useEffect(() => {
     const fetchHabits = async () => {
       try {
@@ -313,7 +315,7 @@ const Habitview: React.FC<Props> = ({ value = new Date(), onChange, user_id }) =
         console.log("📌 Fetched habits data:", habits);
 
         if (!habits || Object.keys(habits).length === 0) {
-          console.warn("⚠️ No habit data received");
+          console.warn(" No habit data received");
           return;
         }
 
@@ -327,10 +329,9 @@ const Habitview: React.FC<Props> = ({ value = new Date(), onChange, user_id }) =
           }
         });
 
-        console.log("✅ Final statusMap before setting state:", statusMap);
         setHabitStatus({ ...statusMap }); // Force React to detect state change
       } catch (error) {
-        console.error("❌ Error fetching habits:", error);
+        console.error(" Error fetching habits:", error);
       }
     };
 
@@ -368,8 +369,9 @@ const Habitview: React.FC<Props> = ({ value = new Date(), onChange, user_id }) =
             return (
               <div
                 key={day.toString()}
-                className={`p-4 border rounded cursor-pointer ${isActive ? 'bg-blue-500 text-white' : 'bg-white'}`}
-                onClick={() => onChange(day)}
+                className={`p-2 border rounded cursor-pointer ${isActive ? 'bg-blue-500 text-white' : 'bg-white'}`}
+                // onClick={() => onChange(day)}
+                onClick={(event) => onChange(event, day)}
               >
                 <div className="text-center text-lg">{format(day, "d")}</div>
                 <div className="text-xs text-gray-500">
@@ -380,17 +382,17 @@ const Habitview: React.FC<Props> = ({ value = new Date(), onChange, user_id }) =
                         : habit.status === 'Completed'
                           ? 'bg-green-500'
                           : habit.status === 'Pending'
-                            ? 'bg-red-500'
+                            ? 'bg-red-400'
                             : 'bg-gray-500';
 
                       return (
-                        <div key={index} className={`p-2 rounded text-white mb-1 ${habitStatusColor}`}>
+                        <div key={index} className={`p-1 rounded text-white mb-1 ${habitStatusColor}`}>
                           {habit.title}
                         </div>
                       );
                     })
                   ) : (
-                    <div className="text-gray-400">No habits for today</div>
+                    <div className="text-gray-400"></div>
                   )}
                 </div>
               </div>

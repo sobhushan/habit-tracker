@@ -286,10 +286,10 @@ const Dashboard = () => {
   return (
     <>
       <Dashnav />
-      <div className="container mt-4">
+      <div className="container-fluid bg-blue-100 ">
         <div className="row">
           {/* Left Section (User Card) */}
-          <div className="col-md-4">
+          <div className="col-md-4 mt-4">
             <div className="card p-3 text-center">
               <img
                 src="/habit logo.png"
@@ -316,7 +316,7 @@ const Dashboard = () => {
           </div>
 
           {/* Right Section (Dashboard) */}
-          <div className="col-md-8">
+          <div className="col-md-8 mt-4 mb-4">
             <div className="card p-3">
               <div className="d-flex justify-content-between align-items-center mb-3">
                 <h4>Your Habits</h4>
@@ -329,7 +329,7 @@ const Dashboard = () => {
               <div className="row">
                 {habits.map((habit) => (
                   <div key={habit.habit_id} className="col-12 mb-3">
-                    <div className="card p-3">
+                    <div className="card p-3"  style={{ backgroundColor: habit.status === "Completed" ? "#d4edda" : "#f8d7da", color: "#000" }} >
                       <h3>{habit.title}</h3>
                       <h5>{habit.description}</h5>
                       <h6>📅 Frequency: {habit.frequency}</h6>

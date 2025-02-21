@@ -7,6 +7,7 @@ import Dashboard from './pages/DashTest';
 import Statistics from './pages/Statistics'
 import Rewards from './pages/Rewards';
 import EventScheduler from './components/EventScheduler';
+
 // import EventScheduler from './components/eventTest';
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js'; 

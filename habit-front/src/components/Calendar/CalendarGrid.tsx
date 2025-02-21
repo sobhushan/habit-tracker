@@ -32,7 +32,7 @@ const CalendarGrid = () => {
   return (
     <div className="mt-16 flex flex-col items-center gap-8">
       <div className="flex flex-col items-center gap-4">
-        <Calendar value={currentDate} onChange={setCurrentDate} userId={Number(localStorage.getItem("user_id"))} />
+        <Calendar value={currentDate} onChange={setCurrentDate} user_id={Number(localStorage.getItem("user_id"))} />
       </div>
     </div>
   ) 

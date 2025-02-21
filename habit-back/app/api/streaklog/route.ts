@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
 
         // If latest status is not "Completed", streak is 0
         if (!latestHabitLog.length || latestHabitLog[0].status !== "Completed") {
-            return NextResponse.json({ message: "Streak data fetched successfully", streak_count: 0 });
+            return NextResponse.json({ message: "Streak data fetched successfully", streak_count: 1 });
         }
 
         // Count consecutive "Completed" days for streak
@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
             AND (prev_date IS NULL OR DATEDIFF(prev_date, date) = 1);`,
             [user_id, habit_id]
         );
-
+        console.log("streaklog GET: ", streakResult);
         return NextResponse.json({
             message: "Streak data fetched successfully",
             streak_count: streakResult[0].streak_count || 0

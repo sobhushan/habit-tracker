@@ -80,7 +80,7 @@ export async function GET(request: NextRequest) {
 
     const habits = results as { habit_id: number, title: string, status: string, created_date: string }[];
 
-    const habitStatusMap: Record<string, { title: string, status: string }[]> = {};
+    const habitStatusMap: Record<string, { habit_id: number, title: string, status: string, date: string}[]> = {};
 
     habits.forEach((habit) => {
       const dateKey = habit.created_date;
@@ -90,8 +90,10 @@ export async function GET(request: NextRequest) {
       }
 
       habitStatusMap[dateKey].push({
+        habit_id: habit.habit_id,
         title: habit.title,
         status: habit.status,
+        date: habit.created_date,
       });
     });
 
