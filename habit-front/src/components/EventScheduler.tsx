@@ -169,7 +169,7 @@ const EventScheduler: React.FC = () => {
             <div className="mt-4">
               <Calendar 
                 value={selectedDate} 
-                userId={Number(localStorage.getItem("user_id"))}
+                user_id={Number(localStorage.getItem("user_id"))}
                 onChange={(date) => {
                   setSelectedDate(date);
                   setShowCalendarPicker(false);

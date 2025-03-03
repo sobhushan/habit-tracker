@@ -18,7 +18,6 @@ const Dashboard = () => {
   const [editHabit, setEditHabit] = useState<any>(null);
   const [username, setUsername] = useState<string | null>("User");
 
-
   useEffect(() => {
     const storedUsername = localStorage.getItem("username");
     setUsername(storedUsername);
@@ -32,6 +31,9 @@ const Dashboard = () => {
 
       try {
         const response = await axios.get(`http://localhost:3000/api/habits?user_id=${user_id}`);
+        console.log('GET on reload:',response.data)
+    
+        // Use the data returned by the backend directly
         setHabits(response.data);
       } catch (error) {
         console.error("Error fetching habits:", error);
@@ -40,7 +42,6 @@ const Dashboard = () => {
 
     fetchHabits();
   }, []);
-
   
   // Logout Function
   const handleLogout = () => {
@@ -48,51 +49,50 @@ const Dashboard = () => {
     window.location.href = "/";
   };
 
-  // Toggle Complete Button
-  const handleToggleComplete = async (habit_id: number) => {
-    const confirmComplete = window.confirm("Are you sure ?");
+  
+  const handleToggleComplete = async (habit_id: number, status: string) => {
+    const confirmComplete = window.confirm("Are you sure?");
+    if (!confirmComplete) return;
+  
     const user_id = parseInt(localStorage.getItem("user_id") || "0", 10);
+    const habitToUpdate = habits.find((habit) => habit.habit_id === habit_id);
+    if (!habitToUpdate) return;
 
-    if (confirmComplete) {
-      const updatedHabits =  habits.map((habit) =>
+    try {
+      const newStatus = status === "Completed" ? "Pending" : "Completed";
+      
+      await axios.put("http://localhost:3000/api/habitlog", {
+        user_id,
+        habit_id,
+        status: newStatus,
+      });
+
+      const streakLogResponse = await axios.get("http://localhost:3000/api/streaklog", {
+        params: { habit_id, user_id },
+      });
+      
+      console.log('Get from streaklog:', {
+                user_id: user_id,
+                habit_id: habit_id,
+                status: newStatus,
+                streak: streakLogResponse.data
+              });
+      const updatedStreak = streakLogResponse.data.streak_count;
+      
+      setHabits((prevHabits) =>
+        prevHabits.map((habit) =>
           habit.habit_id === habit_id
-            ? {
-                ...habit,
-                status: habit.status === "Completed" ? "Pending" : "Completed",
-                streak: habit.status === "Completed" ? habit.streak - 1 : habit.streak + 1,
-              }
-            : habit     
-          );
-          setHabits(updatedHabits);
-
-          try {
-            const habitToUpdate = updatedHabits.find(habit => habit.habit_id === habit_id);
-            
-            if (habitToUpdate) {
-              console.log('Payload to be sent:', {
-                user_id,
-                habit_id: habitToUpdate.habit_id,
-                completed: habitToUpdate.status === "Completed",
-              });
-              
-              const response = await axios.post("http://localhost:3000/api/habitlog", {
-                user_id: user_id, 
-                habit_id: habitToUpdate.habit_id,
-                completed: habitToUpdate.status === "Completed",
-              }, {
-                headers: { "Content-Type": "application/json" },
-              });
-              console.log('Response from API:', response.data);
-            }
-          } catch (error) {
-            console.error('Error logging habit completion:', error);
-            setHabits(habits); 
-          }
+            ? { ...habit, status: newStatus, streak: updatedStreak }
+            : habit
+        )
+      );
+    } catch (error) {
+      console.error("Error updating habit status:", error);
     }
   };
   
 
-  // Delete Function
+  // // Delete Function
   const handleDeleteHabit = async (habit_id: number) => {
     const confirmDelete = window.confirm("Are you sure you want to delete this habit?");
     if (!confirmDelete) return;
@@ -100,12 +100,13 @@ const Dashboard = () => {
       console.error("Habit ID is missing!");
       return;
     }
+  
     console.log("Sending delete request for habit:", habit_id);
   
     try {
       const response = await axios.delete("http://localhost:3000/api/habits", {
         data: { habit_id }, 
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" }, 
       });
   
       console.log("Delete response:", response.data);
@@ -115,7 +116,9 @@ const Dashboard = () => {
       console.error("Error deleting habit:", error);
     }
   };
+  
 
+  // Add Function
   const addHabit = async () => {
     const user_id = localStorage.getItem("user_id");
   
@@ -136,6 +139,8 @@ const Dashboard = () => {
         description: newHabit.description,
         frequency: newHabit.frequency,
         time_req: newHabit.time_req,
+        streak: 0,
+        status: "Pending",
       });
   
       alert("Habit added successfully");
@@ -148,15 +153,14 @@ const Dashboard = () => {
 
   // Edit Funtion
   const handleEditHabit = (habit: any) => {
+    console.log("index:",habit)
+    console.log({...habit})
+
+
     setShowEditModal(true);
     setEditHabit({...habit});
   };
   
-  //   setHabits(updatedHabits); 
-  //   setEditHabit(null);
-  //   setShowEditModal(false);
-
-
   const updateHabit = async () => {
     if (!editHabit || editHabit.title.trim() === "") {
       alert("Habit title cannot be empty!");
@@ -167,7 +171,7 @@ const Dashboard = () => {
   
     try {
       const response = await axios.put("http://localhost:3000/api/habits", {
-        id: editHabit.habit_id, // Ensure `id` is correctly assigned
+        id: editHabit.habit_id, 
         title: editHabit.title,
         description: editHabit.description,
         frequency: editHabit.frequency,
@@ -186,10 +190,10 @@ const Dashboard = () => {
   return (
     <>
       <Dashnav />
-      <div className="container mt-4">
+      <div className="container-fluid bg-blue-100 ">
         <div className="row">
           {/* Left Section (User Card) */}
-          <div className="col-md-4">
+          <div className="col-md-4 mt-4">
             <div className="card p-3 text-center">
               <img
                 src="/habit logo.png"
@@ -205,7 +209,7 @@ const Dashboard = () => {
                 <Link className="list-group-item" to="/statistics">
                   📊 Statistics
                 </Link>
-                <Link className="list-group-item" to="/rewards">
+                <Link className="list-group-item" to="/events">
                   🏆 Rewards
                 </Link>
               </ul>
@@ -216,7 +220,7 @@ const Dashboard = () => {
           </div>
 
           {/* Right Section (Dashboard) */}
-          <div className="col-md-8">
+          <div className="col-md-8 mt-4 mb-4">
             <div className="card p-3">
               <div className="d-flex justify-content-between align-items-center mb-3">
                 <h4>Your Habits</h4>
@@ -228,8 +232,8 @@ const Dashboard = () => {
               {/* Habit List - Single Column */}
               <div className="row">
                 {habits.map((habit) => (
-                  <div key={habit.id} className="col-12 mb-3">
-                    <div className="card p-3">
+                  <div key={habit.habit_id} className="col-12 mb-3">
+                    <div className="card p-3"  style={{ backgroundColor: habit.status === "Completed" ? "#d4edda" : "#f8d7da", color: "#000" }} >
                       <h3>{habit.title}</h3>
                       <h5>{habit.description}</h5>
                       <h6>📅 Frequency: {habit.frequency}</h6>
@@ -240,7 +244,7 @@ const Dashboard = () => {
                       <div className="d-flex justify-content-between mt-2">
                       <button
                           className={`btn ${habit.status === "Completed" ? "btn-secondary" : "btn-success"}`}
-                          onClick={() => handleToggleComplete(habit.id)}
+                          onClick={() => handleToggleComplete( habit.habit_id, habit.status)}
                         >
                           {habit.status === "Completed" ? "🔄 Mark as Incomplete" : "✅ Mark as Complete"}
                         </button>

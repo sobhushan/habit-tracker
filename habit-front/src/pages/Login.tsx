@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Link } from 'react-router-dom';
 import axios from "axios";
+import Navbar from "../components/Navbar";
 
 const Login = () => {
   const [email, setEmail] = useState<string>("");
@@ -22,7 +23,7 @@ const Login = () => {
         // Store user_id and username in localStorage
         localStorage.setItem("user_id", response.data.user_id);
         localStorage.setItem("username", response.data.username);
-        alert("Login Successful");
+        // alert("Login Successful");
         window.location.href = '/dashboard';
       }
     } catch (error) {
@@ -36,7 +37,8 @@ const Login = () => {
     <div
       className="container-fluid position-relative"
       style={{
-        backgroundImage: 'url("https://picsum.photos/1200/500")',
+        backgroundImage: 'url("/bg/bg3.jpg")',
+        // backgroundImage: 'url("https://picsum.photos/1200/500")',
         backgroundSize: "cover",
         backgroundPosition: "center",
         minHeight: "100vh",
@@ -46,29 +48,11 @@ const Login = () => {
         position: "relative",
       }}
     >
-      {/* Navbar - Overlapping Effect */}
-      <nav
-        className="navbar navbar-expand-lg navbar-light"
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: "100%",
-          backgroundColor: "rgba(255, 255, 255, 0.3)",
-          backdropFilter: "blur(8px)",
-          zIndex: 10,
-        }}
-      >
-        <div className="container-fluid">
-          <Link className="navbar-brand text-dark fw-bold" to="/">
-            Habit Tracker
-          </Link>
-        </div>
-      </nav>
-
+      <Navbar />
       {/* Login Card */}
       <div className="container mt-5">
         <div className="card mx-auto shadow-lg" style={{ maxWidth: "400px" }}>
+        <img src="/bg/bg5.jpg" className="d-block w-100" style={{ height: "150px", objectFit: "cover" }}  />
           <div className="card-body">
             <h2 className="text-center">Login</h2>
             <form onSubmit={handleSubmit}>

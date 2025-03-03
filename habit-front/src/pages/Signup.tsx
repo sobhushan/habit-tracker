@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import axios from 'axios';
+import Navbar from "../components/Navbar";
 
 const Signup = () => {
   const [username, setUsername] = useState<string>("");
@@ -22,7 +23,7 @@ const Signup = () => {
       alert(response.data.message); // Show success or failure message
 
       if (response.data.message.includes('Signup successful')) {
-        alert("Signup Successful");
+        // alert("Signup Successful");
         window.location.href = '/login';
         
       }
@@ -36,7 +37,8 @@ const Signup = () => {
     <div
       className="container-fluid position-relative"
       style={{
-        backgroundImage: 'url("https://picsum.photos/1200/500")',
+        // backgroundImage: 'url("https://picsum.photos/1200/500")',
+        backgroundImage: 'url("/bg/bg2.jpg")',
         backgroundSize: "cover",
         backgroundPosition: "center",
         minHeight: "100vh",
@@ -46,29 +48,12 @@ const Signup = () => {
         position: "relative",
       }}
     >
-      {/* Navbar - Positioned Absolutely Over the Background */}
-      <nav
-        className="navbar navbar-expand-lg bg-body-tertiary"
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: "100%",
-          backgroundColor: "rgba(255, 255, 255, 0.3)", // Transparent White
-          backdropFilter: "blur(8px)", // Glassmorphism Effect
-          zIndex: 10,
-        }}
-      >
-        <div className="container-fluid">
-          <Link className="navbar-brand text-dark fw-bold" to="/">
-            Habit Tracker
-          </Link>
-        </div>
-      </nav>
+      <Navbar />
 
       {/* Signup Card */}
       <div className="container mt-5">
         <div className="card mx-auto shadow-lg" style={{ maxWidth: "400px" }}>
+        <img src="/bg/bg5.jpg" className="d-block w-100" style={{ height: "150px", objectFit: "cover" }}  />
           <div className="card-body">
             <h2 className="text-center">Signup Here</h2>
             <form onSubmit={handleSubmit}>

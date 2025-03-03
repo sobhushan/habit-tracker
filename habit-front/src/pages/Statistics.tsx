@@ -93,12 +93,14 @@
 
 //=================================================================================
 import { useState } from "react";
-import { format, addMonths, subMonths } from "date-fns";
+import { format, addMonths, subMonths, subDays, addDays, startOfWeek, endOfWeek } from "date-fns";
 import Calendar from "../components/Calendar/Calendar";
 import Dashnav from "../components/Dashnav";
 import Habitview from "../components/Habitview";
 import AddHabitModal from "../components/AddModal";
 import ViewHabitsOffcanvas from "../components/Offcanvas";
+import { Toast, ToastContainer } from "react-bootstrap";
+import Confetti from "react-confetti";
 
 const Statistics = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -106,13 +108,21 @@ const Statistics = () => {
   const [showModal, setShowModal] = useState(false);
   const [showOffcanvas, setShowOffcanvas] = useState(false);
   const [popoverVisible, setPopoverVisible] = useState(false);
+  const [, setSearchTerm] = useState("");
+  const [confettiActive, setConfettiActive] = useState(false);
+
+  // Function to trigger confetti
+  const triggerConfetti = () => {
+    setConfettiActive(true);
+    setTimeout(() => setConfettiActive(false), 5000); // Stop after 3 seconds
+  };
 
   const today = new Date();
   const isToday = format(selectedDate, "yyyy-MM-dd") === format(today, "yyyy-MM-dd");
   const isPast = selectedDate < today;
   // const isFuture = selectedDate > today;
 
-  const [clickedPosition, setClickedPosition] = useState<{ top: number; left: number } | null>(null);
+  // const [clickedPosition, setClickedPosition] = useState<{ top: number; left: number } | null>(null);
   //month viewer
   const handleDateClick = (event: React.MouseEvent<HTMLDivElement>, date: Date) => {
     if (!event.currentTarget) return; // Safety check
@@ -124,12 +134,12 @@ const Statistics = () => {
     // const target = event.currentTarget as HTMLElement;
     // const rect = target.getBoundingClientRect();
   
-    setClickedPosition({
-      // top: rect.top + window.scrollY, // Account for scrolling
-      // left: rect.left + window.scrollX,
-      top: 10, // A small offset from the top
-      left: window.innerWidth / 2, // Center it horizontally
-    });
+    // setClickedPosition({
+    //   // top: rect.top + window.scrollY, // Account for scrolling
+    //   // left: rect.left + window.scrollX,
+    //   top: 10, // A small offset from the top
+    //   left: window.innerWidth / 2, // Center it horizontally
+    // });
   };
 
   //date picker
@@ -141,106 +151,91 @@ const Statistics = () => {
 
   return (
     <>
-      <Dashnav /> 
-      <div className="container-fluid bg-blue-200">
+    {confettiActive && <Confetti width={window.innerWidth} height={window.innerHeight} />}
+      <Dashnav setSearchTerm={setSearchTerm}/> 
+      <div className="container-fluid"
+      style={{
+        backgroundImage: "url('/images/wood-texture.jpg')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        // border: "2px solid #8B4513",
+        boxShadow: "4px 4px 10px rgba(0, 0, 0, 0.2)"
+      }}>
         <div className="row">
           {/* Left Panel */}
           <div className="col-md-4 mt-4">
-            <div className="card p-3 text-center mb-4">
+            <div className="card p-3 text-center mb-4" style={{backgroundColor:"#2c1852"}}>
               <div className="card-body text-center">
-                <h4 className="card-title">Hello, {localStorage.getItem("username")}!</h4>
                 <img
                   src="/habit logo.png"
                   alt="User"
-                  className="rounded-circle mx-auto d-block"
-                  style={{ width: "200px", height: "200px" }}
+                  className="rounded-circle mx-auto d-block border-4 border-blue-400 shadow-md"
+                  style={{ width: "150px", height: "150px" }}
                 />
-                <div className="calendar-container position-relative">
+                <h5 className="mt-3 text-light">Hello, {localStorage.getItem("username")} 👋</h5>
+                
+                <div className="calendar-container position-relative mt-2">
                   <Calendar
                     value={selectedDate}
                     user_id={Number(localStorage.getItem("user_id"))}
                     onChange={handleDateChange}
                   />
 
-                  {/* Custom Popover */}
-                  {/* {popoverVisible && (isToday || isPast) && (
-                    <div className="position-absolute bg-white shadow p-3 rounded" style={{ top: "50px", left: "50%" }}>
-                      <h6>{format(selectedDate, "dd MMM yyyy")}</h6>
-                      {isToday && (
-                        <button className="btn btn-primary btn-sm w-100 mb-2" onClick={() => setShowModal(true)}>
-                          Add Habit
-                        </button>
-                      )}
-                      <button className="btn btn-success btn-sm w-100" onClick={() => setShowOffcanvas(true)}>
-                        View Habits
-                      </button>
-                      <button className="btn btn-danger btn-sm w-100 mt-2" onClick={() => setPopoverVisible(false)}>
-                        Close
-                      </button>
-                    </div>
-                  )} */}
-
-                  {/* Custom Popover */}
-                  {/* Custom Popover */}
-                  {popoverVisible && (isToday || isPast) && clickedPosition && (
-                    <div
-                      className="position-absolute bg-blue-100 shadow p-3 rounded"
+                  {/* Custom Toast Notification */}
+                  <ToastContainer
+                    className="p-3"
+                    style={{ position: "fixed", top: "20px", right: "20px", zIndex: 1050 }} // Correct way to fix position
+                  >
+                    <Toast
+                      show={popoverVisible && (isToday || isPast)}
+                      onClose={() => setPopoverVisible(false)}
+                      bg="warning"
+                      delay={3000}
+                      autohide
                       style={{
-                        top: `${clickedPosition.top - 20}px`, // Positions popover **above** the clicked date
-                        left: `${clickedPosition.left}px`, // Aligns with the clicked date
-                        transform: "translateX(-50%)", // Centers the popover
-                        zIndex: 1050, // Ensures it appears on top
+                        borderRadius: "10px",
+                        boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+                        minWidth: "250px",
+                        backgroundColor:"#fde231"
                       }}
                     >
-                      {/* Popover Header */}
-                      <div className="d-flex justify-content-between align-items-center mb-2">
-                        <h6 className="mb-0">{format(selectedDate, "dd MMM yyyy")}</h6>
+                      <Toast.Header closeButton={false} className="d-flex justify-content-between">
+                        <strong className="me-auto">{format(selectedDate, "dd MMM yyyy")}</strong>
+                        <button className="btn-close" onClick={() => setPopoverVisible(false)}></button>
+                      </Toast.Header>
+                      <Toast.Body className="text-center">
+                        {isToday && (
+                          <button
+                            className="btn btn-light btn-sm w-100 mb-2"
+                            onClick={() => {
+                              setShowModal(true);
+                              setPopoverVisible(false);
+                            }}
+                          >
+                            ➕ Add Habit
+                          </button>
+                        )}
                         <button
-                          className="btn btn-sm border-0"
-                          onClick={() => setPopoverVisible(false)}
-                          style={{ fontSize: "1.2rem", fontWeight: "bold" }}
-                        >
-                          &times; {/* X Button */}
-                        </button>
-                      </div>
-
-                      {/* Add Habit Button (Only for Today) */}
-                      {isToday && (
-                        <button
-                          className="btn btn-primary btn-sm w-100 mb-2"
+                          className="btn btn-light btn-sm w-100"
                           onClick={() => {
-                            setShowModal(true);
-                            setPopoverVisible(false); // Close popover
+                            setShowOffcanvas(true);
+                            setPopoverVisible(false);
                           }}
                         >
-                          Add Habit
+                          📋 View Habits
                         </button>
-                      )}
-
-                      {/* View Habits Button */}
-                      <button
-                        className="btn btn-success btn-sm w-40"
-                        onClick={() => {
-                          setShowOffcanvas(true);
-                          setPopoverVisible(false); // Close popover
-                        }}
-                      >
-                        View Habits
-                      </button>
-                    </div>
-                  )}
-
-
+                      </Toast.Body>
+                    </Toast>
+                  </ToastContainer>
                 </div>
               </div>
             </div>
           </div>
-
           {/* Right Panel */}
           <div className="col-md-8 mt-4">
             <div className="card p-3 mb-4">
               <div className="d-flex justify-content-between align-items-center mb-3">
-                <div className="d-flex gap-2">
+                {/* <div className="d-flex gap-2">
                   <button onClick={() => setSelectedDate(new Date())} className="btn btn-sm btn-primary">
                     Today
                   </button>
@@ -251,20 +246,51 @@ const Statistics = () => {
                     &gt;
                   </button>
                   <span className="text-xl font-bold cursor-pointer">{format(selectedDate, "MMMM yyyy")}</span>
-                </div>
+                </div> */}
+                <div className="d-flex gap-2">
+                <button onClick={() => setSelectedDate(new Date())} className="btn btn-sm btn-primary">
+                  Today
+                </button>
+                
+                {viewMode === "Month" ? (
+                  <>
+                    <button onClick={() => setSelectedDate(subMonths(selectedDate, 1))} className="btn btn-sm btn-light">
+                      &lt;
+                    </button>
+                    <button onClick={() => setSelectedDate(addMonths(selectedDate, 1))} className="btn btn-sm btn-light">
+                      &gt;
+                    </button>
+                    <span className="text-xl font-bold cursor-pointer">{format(selectedDate, "MMMM yyyy")}</span>
+                  </>
+                ) : (
+                  <>
+                    <button onClick={() => setSelectedDate(subDays(selectedDate, 7))} className="btn btn-sm btn-light">
+                      &lt;
+                    </button>
+                    <button onClick={() => setSelectedDate(addDays(selectedDate, 7))} className="btn btn-sm btn-light">
+                      &gt;
+                    </button>
+                    <span className="text-xl font-bold cursor-pointer">
+                      {format(startOfWeek(selectedDate), "MMM dd")} - {format(endOfWeek(selectedDate), "MMM dd")}
+                    </span>
+                  </>
+                )}
+              </div>
+
                 <select value={viewMode} onChange={(e) => setViewMode(e.target.value)} className="border p-1 rounded">
-                  {["Month", "Week", "Day"].map((option) => (
+                  {["Month", "Week"].map((option) => (
                     <option key={option} value={option}>
                       {option}
                     </option>
                   ))}
                 </select>
               </div>
-              <div className="card-body">
+              <div className="card-body mb-5 flex flex-col items-center w-full">
                 <Habitview
                   value={selectedDate}
                   onChange={handleDateClick}
                   user_id={Number(localStorage.getItem("user_id"))}
+                  viewMode={viewMode}
                 />
               </div>
             </div>
@@ -277,7 +303,7 @@ const Statistics = () => {
 
 
       {/* View Habits Offcanvas */}
-      <ViewHabitsOffcanvas show={showOffcanvas} onClose={() => setShowOffcanvas(false)} selectedDate={selectedDate} />
+      <ViewHabitsOffcanvas show={showOffcanvas} onClose={() => setShowOffcanvas(false)} selectedDate={selectedDate} onHabitComplete={triggerConfetti}/>
     </>
   );
 };

@@ -1,5 +1,4 @@
-// //src/components/AddModal.tsx
-import  { useState } from "react";
+import { useState } from "react";
 import axios from "axios";
 
 const AddHabitModal = ({ show, onClose }: { show: boolean; onClose: () => void }) => {
@@ -8,32 +7,22 @@ const AddHabitModal = ({ show, onClose }: { show: boolean; onClose: () => void }
     description: "",
     frequency: "Daily",
     time_req: "Select time required",
+    category: "Other", // Default category
   });
 
-  // const handleAddHabit = () => {
-  //   if (!newHabit.title.trim()) {
-  //     alert("Habit title is required!");
-  //     return;
-  //   }
-  //   addHabit(newHabit);
-  //   setNewHabit({ title: "", description: "", frequency: "Daily", time_req: "Select time required" });
-  //   onClose();
-  // };
-
-  // Add Function
   const addHabit = async () => {
     const user_id = localStorage.getItem("user_id");
-  
+
     if (!user_id) {
       alert("Unauthorized access");
       return;
     }
-  
+
     if (newHabit.title.trim() === "") {
       alert("Habit title cannot be empty!");
       return;
     }
-  
+
     try {
       await axios.post("http://localhost:3000/api/habits", {
         user_id,
@@ -41,10 +30,11 @@ const AddHabitModal = ({ show, onClose }: { show: boolean; onClose: () => void }
         description: newHabit.description,
         frequency: newHabit.frequency,
         time_req: newHabit.time_req,
+        category: newHabit.category, // Include category
         streak: 0,
         status: "Pending",
       });
-  
+
       alert("Habit added successfully");
       window.location.reload();
     } catch (error) {
@@ -98,6 +88,21 @@ const AddHabitModal = ({ show, onClose }: { show: boolean; onClose: () => void }
               <option>2 hrs</option>
               <option>2 hr 30 mins</option>
               <option>Custom...</option>
+            </select>
+            <select
+              className="form-control mb-2"
+              value={newHabit.category}
+              onChange={(e) => setNewHabit({ ...newHabit, category: e.target.value })}
+            >
+              <option>Work</option>
+              <option>Fitness</option>
+              <option>Leisure</option>
+              <option>Health</option>
+              <option>Self-care</option>
+              <option>Growth</option>
+              <option>Relationships</option>
+              <option>Finances</option>
+              <option>Other</option>
             </select>
           </div>
           <div className="modal-footer">

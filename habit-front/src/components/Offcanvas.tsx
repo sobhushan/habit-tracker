@@ -10,7 +10,7 @@ interface Habit {
     date: string;
 }
 
-const ViewHabitsOffcanvas = ({ show, onClose, selectedDate }: { show: boolean; onClose: () => void; selectedDate: Date }) => {
+const ViewHabitsOffcanvas = ({ show, onClose, selectedDate, onHabitComplete }: { show: boolean; onClose: () => void; selectedDate: Date; onHabitComplete: () => void  }) => {
     const [habits, setHabits] = useState<Habit[]>([]);
     const userId = Number(localStorage.getItem("user_id"));
   
@@ -57,6 +57,7 @@ const ViewHabitsOffcanvas = ({ show, onClose, selectedDate }: { show: boolean; o
           });
           console.log("new stat", res.data);
           fetchHabits(); // Reload data
+          onHabitComplete();
         } catch (error) {
           console.error("Failed to update habit:", error);
         }
@@ -65,7 +66,7 @@ const ViewHabitsOffcanvas = ({ show, onClose, selectedDate }: { show: boolean; o
     const isWithinOneWeek = isAfter(selectedDate, subDays(new Date(), 7));
 
     return (
-    <div className={`offcanvas offcanvas-start ${show ? "show" : ""}`} style={{ width: "350px" , backgroundColor: "rgb(240, 255, 255)"}}>
+    <div className={`offcanvas offcanvas-start ${show ? "show" : ""}`} style={{ width: "450px" , backgroundColor: "#ffebee"}}>
       <div className="offcanvas-header">
         <h5 className="offcanvas-title">Habits on {format(selectedDate, "dd MMM yyyy")}</h5>
         <button className="btn-close" onClick={onClose}></button>
@@ -78,7 +79,7 @@ const ViewHabitsOffcanvas = ({ show, onClose, selectedDate }: { show: boolean; o
             key={habit?.habit_id || index}
               className={`card text-white mb-2`}
               style={{
-                backgroundColor: habit.status === "Completed" ? "#28a745" : "#f73647", 
+                backgroundColor: habit.status === "Completed" ? " #48bb78" : "#f56565", 
                 display: "flex",
                 flexDirection: "row",
                 justifyContent: "space-between", 

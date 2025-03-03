@@ -1,26 +1,3 @@
-// import { NextResponse, NextRequest } from 'next/server';
-// import pool from '@/app/auth';
-// // import jwt from 'jsonwebtoken';
-
-// // const SECRET_KEY = "qwerty";
-
-// export async function POST(request: NextRequest) {
-//   const { username, password } = await request.json();
-//   console.log("Login attempt: ",username, password);
-
-//   const [results]: any = await pool.query(
-//           'SELECT * FROM users WHERE username = ? AND password = ?',
-//           [username, password]
-//         );
-//   if (results.length > 0) {
-//     //const token = jwt.sign({ username }, SECRET_KEY, { expiresIn: '1h' });
-//     //return Response.json({token, message: `Login successful! Welcome, ${username}`,});
-//     return Response.json({message: `Login successful! Welcome, ${username}`,});
-//   }else{
-//     return Response.json({message: "Invadid Credendials",});
-//   }
-// }
-// // -------------------------------------------------------------------------------
 //app/api/login/route.ts
 import { NextResponse, NextRequest } from "next/server";
 import pool from "@/app/auth";

@@ -47,7 +47,7 @@
   color: rgb(255, 255, 255);
   text-align: center;
   font-weight: bold;
-  font-family: 'Arial', sans-serif;
+  font-family: 'Inter', sans-serif;
 }
 
 .wor {
@@ -56,5 +56,25 @@
   line-height: 1;
   font-weight: bold;
   text-align: center;
-  font-family: 'Arial', sans-serif;
+  font-family: 'Inter', sans-serif;
 }
+/* body {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+}
+
+h1 {
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+}
+
+h2 {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+}
+
+p {
+  font-family: 'Inter', sans-serif;
+  font-weight: 300;
+} */
+

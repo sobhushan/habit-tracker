@@ -1,159 +1,175 @@
-// // import React, { useState } from "react";
-// // import { startOfMonth, endOfMonth, eachDayOfInterval, format, getDay, addMonths, subMonths } from "date-fns";
+//src/pages/Rewards.tsx
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { Container, Row, Col, Card, ProgressBar } from "react-bootstrap";
+import { Pie, Bar, Doughnut } from "react-chartjs-2";
+import "chart.js/auto";
+import Dashnav from "../components/Dashnav";
+import Heatmap from "../components/Heatmap";
 
-// // const Rewards: React.FC = () => {
-// //   const [currentDate, setCurrentDate] = useState(new Date());
+const Rewards = () => {
+  const [username, setUsername] = useState<string>("");
+  const [habitStatusData, setHabitStatusData] = useState({
+    labels: ["Completed", "Pending"],
+    datasets: [{ data: [0, 0], backgroundColor: ["#28a745", "#dc3545"] }],
+  });
 
-// //   // Get the first and last day of the month
-// //   const firstDay = startOfMonth(currentDate);
-// //   const lastDay = endOfMonth(currentDate);
+  const [pieData, setPieData] = useState<{ labels: string[]; datasets: { data: number[]; backgroundColor: string[] }[] }>({
+    labels: [],
+    datasets: [{ data: [], backgroundColor: ["#007bff", "#28a745", "#ffc107", "#dc3545", "#17a2b8", "#6f42c1", "#fd7e14", "#20c997", "#6c757d"] }],
+  });
 
-// //   // Generate days for the calendar
-// //   const days = eachDayOfInterval({ start: firstDay, end: lastDay });
+  const [barData, setBarData] = useState({
+    labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    datasets: [{ label: "Habits Completed", data: [0, 0, 0, 0, 0, 0, 0], backgroundColor: "#17a2b8" }],
+  });
 
-// //   return (
-// //     <div style={{ textAlign: "center" }}>
-// //       <h2>{format(currentDate, "MMMM yyyy")}</h2>
-// //       <button onClick={() => setCurrentDate(subMonths(currentDate, 1))}>Prev</button>
-// //       <button onClick={() => setCurrentDate(addMonths(currentDate, 1))}>Next</button>
+  const [, setSearchTerm] = useState("");
 
-// //       <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "5px", marginTop: "10px" }}>
-// //         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-// //           <div key={day} style={{ fontWeight: "bold" }}>{day}</div>
-// //         ))}
-
-// //         {Array(getDay(firstDay)).fill(null).map((_, i) => <div key={`empty-${i}`} />)}
-
-// //         {days.map((day) => (
-// //           <div key={day.toString()} style={{ padding: "10px", border: "1px solid #ccc" }}>
-// //             {format(day, "d")}
-// //           </div>
-// //         ))}
-// //       </div>
-// //     </div>
-// //   );
-// // };
-
-// // export default Rewards;
-// import React, { useState } from "react";
-// import { 
-//   format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, getDay, isSameDay 
-// } from "date-fns";
-
-// interface Event {
-//   id: number;
-//   title: string;
-//   date: Date;
-// }
-
-// const CalendarApp: React.FC = () => {
-//   const [currentDate, setCurrentDate] = useState(new Date());
-//   const [events, setEvents] = useState<Event[]>([]);
-//   const [newEvent, setNewEvent] = useState({ title: "", date: new Date() });
-
-//   // Generate days for the current month
-//   const firstDay = startOfMonth(currentDate);
-//   const lastDay = endOfMonth(currentDate);
-//   const daysInMonth = eachDayOfInterval({ start: firstDay, end: lastDay });
-
-//   // Add empty slots for proper grid alignment
-//   const emptySlots = Array(getDay(firstDay)).fill(null);
-
-//   // Handle new event submission
-//   const handleAddEvent = () => {
-//     if (newEvent.title) {
-//       setEvents([...events, { id: events.length + 1, title: newEvent.title, date: newEvent.date }]);
-//       setNewEvent({ title: "", date: new Date() });
-//     }
-//   };
-
-//   return (
-//     <div style={{ textAlign: "center" }}>
-//       <h2>{format(currentDate, "MMMM yyyy")}</h2>
-      
-//       {/* Month Navigation */}
-//       <button onClick={() => setCurrentDate(subMonths(currentDate, 1))}>Prev</button>
-//       <button onClick={() => setCurrentDate(addMonths(currentDate, 1))}>Next</button>
-
-//       {/* Calendar Grid */}
-//       <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "5px", marginTop: "10px" }}>
-//         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-//           <div key={day} style={{ fontWeight: "bold" }}>{day}</div>
-//         ))}
-        
-//         {/* Empty slots for alignment */}
-//         {emptySlots.map((_, i) => <div key={`empty-${i}`} />)}
-
-//         {/* Calendar Days */}
-//         {daysInMonth.map((day) => (
-//           <div key={day.toString()} style={{ padding: "10px", border: "1px solid #ccc", minHeight: "60px" }}>
-//             <strong>{format(day, "d")}</strong>
-//             {/* Show events for this day */}
-//             {events.filter(event => isSameDay(event.date, day)).map(event => (
-//               <div key={event.id} style={{ background: "#4caf50", color: "#fff", padding: "2px", marginTop: "5px", borderRadius: "3px" }}>
-//                 {event.title}
-//               </div>
-//             ))}
-//           </div>
-//         ))}
-//       </div>
-
-//       {/* Event Form */}
-//       <h3>Schedule Event</h3>
-//       <input
-//         type="text"
-//         placeholder="Event Title"
-//         value={newEvent.title}
-//         onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
-//       />
-//       <input
-//         type="date"
-//         onChange={(e) => setNewEvent({ ...newEvent, date: new Date(e.target.value) })}
-//       />
-//       <button onClick={handleAddEvent}>Add Event</button>
-//     </div>
-//   );
-// };
-
-// export default CalendarApp;
-import { useState, useEffect } from "react";
-import { useCalendarApp, ScheduleXCalendar } from '@schedule-x/react'
-import {
-  createViewDay,
-  createViewMonthAgenda,
-  createViewMonthGrid,
-  createViewWeek,
-} from '@schedule-x/calendar'
-import { createEventsServicePlugin } from '@schedule-x/events-service'
- 
-import '@schedule-x/theme-default/dist/index.css'
- 
-function CalendarApp() {
-  const eventsService = useState(() => createEventsServicePlugin())[0]
- 
-  const calendar = useCalendarApp({
-    views: [createViewDay(), createViewWeek(), createViewMonthGrid(), createViewMonthAgenda()],
-    events: [
-      {
-        id: '1',
-        title: 'Event 1',
-        start: '2023-12-16',
-        end: '2023-12-16',
-      },
-    ],
-    plugins: [eventsService]
-  })
- 
   useEffect(() => {
-    // get all events
-    eventsService.getAll()
-  }, [])
- 
+    // Fetch username from local storage
+    const storedUsername = localStorage.getItem("username");
+    if (storedUsername) setUsername(storedUsername);
+    const user_id = localStorage.getItem("user_id");
+
+    // Fetch Pie Chart Data (Habit Categories)
+    axios.get(`http://localhost:3000/api/charts/piechart?user_id=${user_id}`)
+      .then((response) => {
+        const data = response.data;
+        setPieData({
+          labels: Object.keys(data) as string[],
+          datasets: [{ data: Object.values(data) as number[], backgroundColor: ["#007bff", "#28a745", "#ffc107", "#dc3545", "#17a2b8", "#6f42c1", "#fd7e14", "#20c997", "#6c757d"] }],
+        });
+      })
+      .catch((error) => console.error("Error fetching category data:", error));
+
+    // Fetch Donut Chart Data (Completed vs Pending)
+    axios.get(`http://localhost:3000/api/charts/donutchart?user_id=${user_id}`)
+      .then((response) => {
+        const { completed, pending } = response.data;
+        setHabitStatusData({
+          labels: ["Completed", "Pending"],
+          datasets: [{ data: [completed, pending], backgroundColor: ["#28a745", "#dc3545"] }],
+        });
+      })
+      .catch((error) => console.error("Error fetching habit status:", error));
+
+    // Fetch Bar Chart Data (Weekly Habit Progress)
+    axios.get(`http://localhost:3000/api/charts/bargraph?user_id=${user_id}`)
+      .then((response) => {
+        console.log("Bar Graph Data from API:", response.data); // Debugging API response
+        setBarData({
+          labels: response.data.map((item: { date: string }) => item.date), // Use API dates
+          datasets: [
+            {
+              label: "Habits Completed",
+              data: response.data.map((item: { count: number }) => item.count), // Extract counts
+              backgroundColor: "#17a2b8",
+            },
+          ],
+        });
+      })
+      .catch((error) => console.error("Error fetching weekly habit data:", error));
+  }, []);
+
   return (
-    <div>
-      <ScheduleXCalendar calendarApp={calendar} />
+    <div 
+    style={{
+      backgroundImage: "url('/images/wood-texture.jpg')",
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+      // border: "2px solid #8B4513",
+      boxShadow: "4px 4px 10px rgba(0, 0, 0, 0.2)"
+    }}>
+      <Dashnav setSearchTerm={setSearchTerm}/>
+      <Container className="mt-4">
+        <h2 className="text-center mb-4" style={{color: "#471514"}}>Rewards & Progress</h2>
+        <Row>
+          {/* Left Column - User Card + Donut Chart */}
+          <Col md={4}>
+            <Card className="text-center p-3 shadow-lg mb-3 ">
+              <Card.Body>
+                <h4>Hello, {username}! 👋</h4>
+                <p>Keep up the great work!</p>
+                <h5>Today's Habit Status</h5>
+                <Doughnut data={habitStatusData} />
+              </Card.Body>
+            </Card>
+            <Card className="text-center p-3 shadow-lg">
+              <h5>Habit Categories</h5>
+              <Pie data={pieData} />
+            </Card>
+          </Col>
+
+          {/* Right Column - Bar Chart, Heatmap, and Badges */}
+          <Col md={8}>
+            <Row>
+              <Col md={12}>
+                <Card className="text-center p-3 shadow-lg mb-3">
+                  <h5>Weekly Progress</h5>
+                  <Bar data={barData} />
+                </Card>
+              </Col>
+              <Col md={12}>
+                <Card className="text-center p-3 shadow-lg mb-3">
+                  <Heatmap />
+                </Card>
+              </Col>
+              <Col md={12}>
+                <Card className="text-center p-3 shadow-lg mb-3 bg-gradient-to-br from-pink-200 to-purple-200 rounded-lg">
+                  <h5>🎖️ Badges Earned</h5>
+                  <Row className="d-flex justify-content-center">
+                    <Col md={4} className="mb-3">
+                      <Card className="text-center p-2 shadow">
+                        <Card.Img variant="top" src="/images/badge1.png" alt="Bronze Badge" />
+                        <Card.Body>
+                          <Card.Title>Bronze Streak</Card.Title>
+                          <Card.Text>Complete 5 habits in a row</Card.Text>
+                          <ProgressBar now={40} variant="warning" label={`40%`} />
+                        </Card.Body>
+                      </Card>
+                    </Col>
+                    <Col md={4} className="mb-3">
+                      <Card className="text-center p-2 shadow">
+                        <Card.Img variant="top" src="/images/badge2.png" alt="Silver Badge" />
+                        <Card.Body>
+                          <Card.Title>Silver Streak</Card.Title>
+                          <Card.Text>Complete 10 habits in a row</Card.Text>
+                          <ProgressBar now={60} variant="info" label={`60%`} />
+                        </Card.Body>
+                      </Card>
+                    </Col>
+                    <Col md={4} className="mb-3">
+                      <Card className="text-center p-2 shadow">
+                        <Card.Img variant="top" src="/images/badge3.png" alt="Gold Badge" />
+                        <Card.Body>
+                          <Card.Title>Gold Streak</Card.Title>
+                          <Card.Text>Complete 20 habits in a row</Card.Text>
+                          <ProgressBar now={80} variant="success" label={`80%`} />
+                        </Card.Body>
+                      </Card>
+                    </Col>
+                  </Row>
+                  <p className="mt-3 text-muted">
+                    🌟 Keep pushing forward! Every small step adds up to big achievements! 🚀
+                  </p>
+                </Card>
+              </Col>
+            </Row>
+          </Col>
+        </Row>
+      </Container>
     </div>
-  )
-}
- 
-export default CalendarApp;
+  );
+};
+
+export default Rewards;
+
+
+
+
+
+//=====================================================================================
+
+
+

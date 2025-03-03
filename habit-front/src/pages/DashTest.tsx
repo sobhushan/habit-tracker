@@ -1,58 +1,36 @@
-// src/pages/Dashboard.tsx
-import { Link } from "react-router-dom";
+// // src/pages/Dashboard.tsx
+
 import Dashnav from "../components/Dashnav";
-import { useEffect, useState } from "react";
+import { useEffect, useState} from "react";
 import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
+import AddHabitModal from "../components/AddModal";
+import UserCard from "../components/Usercard";
 
 const Dashboard = () => {
   const [habits, setHabits] = useState<any[]>([]);
-  const [newHabit, setNewHabit] = useState({
-    title: "",
-    description: "",
-    frequency: "Daily",
-    time_req: "30 mins",
-  });
-  const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editHabit, setEditHabit] = useState<any>(null);
   const [username, setUsername] = useState<string | null>("User");
+  const [user_id, setUserId] = useState<string | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedStatus, setSelectedStatus] = useState("All");
+  const [expandedHabitId, setExpandedHabitId] = useState<number | null>(null);
 
+  const [searchTerm, setSearchTerm] = useState("");
 
-  // useEffect(() => {
-  //   const storedUsername = localStorage.getItem("username");
-  //   setUsername(storedUsername);
-  //   const fetchHabits = async () => {
-  //     const user_id = localStorage.getItem("user_id");
-  //     if (!user_id) {
-  //       alert("Unauthorized access");
-  //       window.location.href = "/";
-  //       return;
-  //     }
+  const toggleExpandHabit = (habitId: number) => {
+    setExpandedHabitId(expandedHabitId === habitId ? null : habitId);
+  };
 
-  //     try {
-  //       const response = await axios.get(`http://localhost:3000/api/habits?user_id=${user_id}`);
-  
-  //       // Set default values for any habit if not present
-  //       const habitsWithDefaults = response.data.map((habit: any) => ({
-  //         ...habit,
-  //         status: habit.status || "Pending", 
-  //         streak: habit.streak || 0, 
-  //       }));
-  
-  //       setHabits(habitsWithDefaults);
-  //     } catch (error) {
-  //       console.error("Error fetching habits:", error);
-  //     }
-  //   };
-
-  //   fetchHabits();
-  // }, []);
   useEffect(() => {
     const storedUsername = localStorage.getItem("username");
+    const storedUserId = localStorage.getItem("user_id");
     setUsername(storedUsername);
+    setUserId(storedUserId);
+    const user_id = localStorage.getItem("user_id");
     const fetchHabits = async () => {
-      const user_id = localStorage.getItem("user_id");
       if (!user_id) {
         alert("Unauthorized access");
         window.location.href = "/";
@@ -63,7 +41,6 @@ const Dashboard = () => {
         const response = await axios.get(`http://localhost:3000/api/habits?user_id=${user_id}`);
         console.log('GET on reload:',response.data)
     
-        // Use the data returned by the backend directly
         setHabits(response.data);
       } catch (error) {
         console.error("Error fetching habits:", error);
@@ -75,69 +52,26 @@ const Dashboard = () => {
   
   // Logout Function
   const handleLogout = () => {
+    localStorage.removeItem("username");
+    localStorage.removeItem("user_id");
     alert("Logged out!");
     window.location.href = "/";
   };
 
+  const displayHabits = habits.filter((habit) => {
+    return (
+      (selectedCategory === "All" || habit.category === selectedCategory) &&
+      (selectedStatus === "All" || habit.status === selectedStatus) &&
+      (habit.title.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+  });
+
+  // Filter habits based on search term
+  // const filteredHabits = habits.filter((habit) =>
+  //   habit.title.toLowerCase().includes(searchTerm.toLowerCase())
+  // );
+
   // Toggle Complete Button
-  // const handleToggleComplete = async (habit_id: number) => {
-  //   const confirmComplete = window.confirm("Are you sure?");
-  //   if (!confirmComplete) return;
-  
-  //   const user_id = parseInt(localStorage.getItem("user_id") || "0", 10);
-  //   const habitToUpdate = habits.find((habit) => habit.habit_id === habit_id);
-  //   if (!habitToUpdate) return;
-  
-  //   // Toggle status
-  //   // const isCompleted = habitToUpdate.status !== "Completed"; // Toggle status
-  //   const isCompleted = habitToUpdate.status === "Completed" ? "Pending" : "Completed"
-  //   // const updatedStreak = habitToUpdate.status === "Completed" ? habitToUpdate.streak - 1 : habitToUpdate.streak + 1,
-  //   try {
-  //     console.log('Payload to be sent habitlog:', {
-  //       user_id: user_id,
-  //       habit_id: habitToUpdate.habit_id,
-  //       status: isCompleted
-  //     });
-  //     // Update habitlog for status
-  //     const habitLogResponse = await axios.put("http://localhost:3000/api/habitlog", {
-  //       user_id: user_id,
-  //       habit_id: habitToUpdate.habit_id,
-  //       status: isCompleted,
-  //     }, {
-  //       headers: { "Content-Type": "application/json" },
-  //     });
-  
-  //     if (habitLogResponse.status === 200) {
-  //       console.log('Payload to be sent streaklog:', {
-  //         user_id: user_id,
-  //         habit_id: habitToUpdate.habit_id,
-  //         status: isCompleted
-  //       });
-  //       // Update streaklog for streak count
-  //       const streakLogResponse = await axios.post("http://localhost:3000/api/streaklog", {
-  //         user_id: user_id,
-  //         habit_id: habitToUpdate.habit_id,
-  //         status: isCompleted,
-  //       }, {
-  //         headers: { "Content-Type": "application/json" },
-  //       });
-  
-  //       if (streakLogResponse.status === 200) {
-  //         // Update the state with the new streak and status
-  //         const updatedStreak = streakLogResponse.data.streak_count;
-  //         const updatedHabits = habits.map((habit) =>
-  //           habit.habit_id === habit_id ? { ...habit, status: isCompleted, streak: updatedStreak } : habit
-  //         );
-  //         setHabits(updatedHabits);
-  //         console.log("updated streak: ",updatedHabits)
-  //       }
-  //     }
-      
-  //   } catch (error) {
-  //     console.error("Error updating habit status and streak:", error);
-  //   }
-  // };
-  
   const handleToggleComplete = async (habit_id: number, status: string) => {
     const confirmComplete = window.confirm("Are you sure?");
     if (!confirmComplete) return;
@@ -208,40 +142,6 @@ const Dashboard = () => {
       console.error("Error deleting habit:", error);
     }
   };
-  
-
-  // Add Function
-  const addHabit = async () => {
-    const user_id = localStorage.getItem("user_id");
-  
-    if (!user_id) {
-      alert("Unauthorized access");
-      return;
-    }
-  
-    if (newHabit.title.trim() === "") {
-      alert("Habit title cannot be empty!");
-      return;
-    }
-  
-    try {
-      await axios.post("http://localhost:3000/api/habits", {
-        user_id,
-        title: newHabit.title,
-        description: newHabit.description,
-        frequency: newHabit.frequency,
-        time_req: newHabit.time_req,
-        streak: 0,
-        status: "Pending",
-      });
-  
-      alert("Habit added successfully");
-      window.location.reload();
-    } catch (error) {
-      console.error("Error adding habit:", error);
-    }
-  };
-  
 
   // Edit Funtion
   const handleEditHabit = (habit: any) => {
@@ -253,9 +153,6 @@ const Dashboard = () => {
     setEditHabit({...habit});
   };
   
-  //   setHabits(updatedHabits); 
-  //   setEditHabit(null);
-  //   setShowEditModal(false);
 
   const updateHabit = async () => {
     if (!editHabit || editHabit.title.trim() === "") {
@@ -272,6 +169,7 @@ const Dashboard = () => {
         description: editHabit.description,
         frequency: editHabit.frequency,
         time_req: editHabit.time_req,
+        category: editHabit.category,
       });
   
       console.log("Update response:", response.data);
@@ -284,143 +182,118 @@ const Dashboard = () => {
   
 
   return (
-    <>
-      <Dashnav />
-      <div className="container-fluid bg-blue-100 ">
+    <div style={{
+      backgroundImage: "url('/images/wood-texture.jpg')",
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+      // border: "2px solid #8B4513",
+      boxShadow: "4px 4px 10px rgba(0, 0, 0, 0.2)",
+      minHeight: "100vh",
+    }}>
+      <Dashnav setSearchTerm={setSearchTerm} />
+      <div className="container-fluid">
         <div className="row">
           {/* Left Section (User Card) */}
-          <div className="col-md-4 mt-4">
-            <div className="card p-3 text-center">
-              <img
-                src="/habit logo.png"
-                alt="User"
-                className="rounded-circle mx-auto d-block"
-                style={{ width: "200px", height: "200px" }}
-              />
-              <h5 className="mt-3">Welcome, {username}</h5>
-              <ul className="list-group mt-3">
-                <Link className="list-group-item" to="/dashboard">
-                  📋 All Habits
-                </Link>
-                <Link className="list-group-item" to="/statistics">
-                  📊 Statistics
-                </Link>
-                <Link className="list-group-item" to="/events">
-                  🏆 Rewards
-                </Link>
-              </ul>
-              <button onClick={handleLogout} className="btn btn-danger mt-3">
-                Logout
-              </button>
-            </div>
-          </div>
+
+          <UserCard username={username} user_id={user_id} handleLogout={handleLogout} />
 
           {/* Right Section (Dashboard) */}
           <div className="col-md-8 mt-4 mb-4">
-            <div className="card p-3">
+            {/* <div className="card p-3"
+                                style={{
+                                  backgroundImage: "url('/images/old-paper.jpeg')",
+                                  backgroundSize: "cover",
+                                  backgroundPosition: "center",
+                                  // border: "2px solid #8B4513",
+                                  boxShadow: "4px 4px 10px rgba(0, 0, 0, 0.2)",
+                                  color:"white"
+                                }}
+            > */}
               <div className="d-flex justify-content-between align-items-center mb-3">
-                <h4>Your Habits</h4>
-                <button className="btn btn-primary" onClick={() => setShowAddModal(true)}>
-                  + Add Habit
-                </button>
+                <h4 style={{color: "#471514"}}>Your Habits</h4>
+                <div className="d-flex">
+                  <select className="form-select" value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
+                    <option value="All">All Categories</option>
+                    <option value="Work">Work</option>
+                    <option value="Fitness">Fitness</option>
+                    <option value="Leisure">Leisure</option>
+                    <option value="Health">Health</option>
+                    <option value="Self-care">Self-care</option>
+                    <option value="Growth">Growth</option>
+                    <option value="Relationships">Relationships</option>
+                    <option value="Finances">Finances</option>
+                    <option value="Other">Others</option>
+                  </select>
+                  <select className="form-select mx-2" value={selectedStatus} onChange={(e) => setSelectedStatus(e.target.value)}>
+                    <option value="All">All Statuses</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Pending">Pending</option>
+                  </select>
+                  <button className="btn" style={{backgroundImage: "url('/images/grad.jpg')",backgroundSize: "cover",
+      backgroundPosition: "center", color:"white", border:"black"}} onClick={() => setShowModal(true)}>+AddHabit </button>
+                </div>
               </div>
 
               {/* Habit List - Single Column */}
               <div className="row">
-                {habits.map((habit) => (
-                  <div key={habit.habit_id} className="col-12 mb-3">
-                    <div className="card p-3"  style={{ backgroundColor: habit.status === "Completed" ? "#d4edda" : "#f8d7da", color: "#000" }} >
+                {displayHabits.map((habit) => (
+                <div key={habit.habit_id} className="col-12 mb-3">
+                  <div 
+                    className="card p-3"
+                    style={{ backgroundColor: habit.status === "Completed" ? "#d4edda" : "#f8d7da", color: "#000", cursor: "pointer" }}
+                    onClick={() => toggleExpandHabit(habit.habit_id)}
+                  >
+                    {/* Always Visible */}
+                    <div className="d-flex justify-content-between align-items-center">
                       <h3>{habit.title}</h3>
-                      <h5>{habit.description}</h5>
-                      <h6>📅 Frequency: {habit.frequency}</h6>
-                      <h6>⏳ Time Required: {habit.time_req}</h6>
-                      <h5>Status: <strong>{habit.status}</strong></h5>
-                      <h5>🔥 Streak: {habit.streak} days</h5>
-
-                      <div className="d-flex justify-content-between mt-2">
-                      <button
-                          className={`btn ${habit.status === "Completed" ? "btn-secondary" : "btn-success"}`}
-                          onClick={() => handleToggleComplete( habit.habit_id, habit.status)}
-                        >
-                          {habit.status === "Completed" ? "🔄 Mark as Incomplete" : "✅ Mark as Complete"}
-                        </button>
-                        <div className="d-flex">
-                        <button className="btn btn-outline-warning mx-2" onClick={() => handleEditHabit(habit)}>
-                          Edit
-                        </button>
-                        <button className="btn btn-outline-danger" onClick={() => handleDeleteHabit(habit.habit_id)}>
-                          Delete
-                        </button>
-                        </div>
+                      <div>
+                      <h6>{habit.category}</h6>
+                      {/* <h6 style={{color: "#471514"}}>🔥<strong>{habit.streak} days</strong></h6> */}
                       </div>
                     </div>
+                    <h5 style={{color: "#471514"}}>🔥<strong>{habit.streak} days</strong></h5>
+                    {/* Expandable Section */}
+                    {expandedHabitId === habit.habit_id && (
+                      <>
+                        <h6>📝 {habit.description}</h6>
+                        <h6>📅 Frequency: {habit.frequency}</h6>
+                        <h6>⏳ Time Required: {habit.time_req}</h6>
+                        <h6>🔄 Status: <strong>{habit.status}</strong></h6>
+
+                        <div className="d-flex justify-content-between mt-2">
+                          <button
+                            className={`btn ${habit.status === "Completed" ? "btn-secondary" : "btn-success"}`}
+                            onClick={(e) => {
+                              e.stopPropagation(); // Prevent card click from toggling
+                              handleToggleComplete(habit.habit_id, habit.status);
+                            }}
+                          >
+                            {habit.status === "Completed" ? "🔄 Mark as Incomplete" : "✅ Mark as Complete"}
+                          </button>
+                          <div className="d-flex">
+                            <button className="btn btn-outline-light mx-2" onClick={(e) => { e.stopPropagation(); handleEditHabit(habit); }}>
+                            ✏️
+                            </button>
+                            <button className="btn btn-outline-light" onClick={(e) => { e.stopPropagation(); handleDeleteHabit(habit.habit_id); }}>
+                            🗑️
+                            </button>
+                          </div>
+                        </div>
+                      </>
+                    )}
                   </div>
-                ))}
+                </div>
+              ))}
+
               </div>
             </div>
           </div>
-        </div>
+        {/* </div> */}
       </div>
 
       {/* Add Habit Modal */}
-      {showAddModal && (
-      <div className="modal fade show d-block" id="addHabitModal">
-        <div className="modal-dialog">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h5 className="modal-title">Add Habit</h5>
-              <button type="button" className="btn-close" onClick={() => setShowAddModal(false)}></button>
-            </div>
-            <div className="modal-body">
-              <input
-                type="text"
-                className="form-control mb-2"
-                placeholder="Habit Title"
-                value={newHabit.title}
-                onChange={(e) => setNewHabit({ ...newHabit, title: e.target.value })}
-              />
-              <textarea
-                className="form-control mb-2"
-                placeholder="Habit Description"
-                value={newHabit.description}
-                onChange={(e) => setNewHabit({ ...newHabit, description: e.target.value })}
-              ></textarea>
-              <select
-                className="form-control mb-2"
-                value={newHabit.frequency}
-                onChange={(e) => setNewHabit({ ...newHabit, frequency: e.target.value })}
-              >
-                <option>Daily</option>
-                <option>Weekly</option>
-                <option>Monthly</option>
-                <option>Custom...</option>
-              </select>
-              <select
-                className="form-control mb-2"
-                value={newHabit.time_req}
-                onChange={(e) => setNewHabit({ ...newHabit, time_req: e.target.value })}
-              >
-                <option>Select time required</option>
-                <option>30 mins</option>
-                <option>1 hr</option>
-                <option>1 hr 30 mins</option>
-                <option>2 hrs</option>
-                <option>2 hr 30 mins</option>
-                <option>Custom...</option>
-              </select>
-            </div>
-            <div className="modal-footer">
-              <button type="button" className="btn btn-secondary" onClick={() => setShowAddModal(false)}>
-                Cancel
-              </button>
-              <button type="button" className="btn btn-primary" onClick={addHabit}>
-                Add Habit
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-      )}
+      <AddHabitModal show={showModal} onClose={() => setShowModal(false)} />
+      
       {/* Edit Habit Modal */}
       {showEditModal && editHabit && (
         <div className="modal fade show d-block">
@@ -490,9 +363,8 @@ const Dashboard = () => {
           </div>
         </div>
       )} 
-    </>
+    </div>
   );
 };
 
 export default Dashboard;
-
