@@ -193,7 +193,7 @@ const Statistics = () => {
           <div className="col-md-4 mt-4">
             <div
               className="card p-3 text-center mb-4"
-              style={{ backgroundColor: "#2c1852" }}
+              style={{ background: "linear-gradient(135deg, #6a11cb, #2c1852)", borderRadius:"20px" }}
             >
               <div className="card-body text-center">
                 <img
@@ -286,12 +286,14 @@ const Statistics = () => {
           </div>
           {/* Right Panel */}
           <div className="col-md-8 mt-4">
-            <div className="card p-3 mb-4">
+            <div className="card p-3 mb-4" 
+            style={{borderRadius:"15px", background: "linear-gradient(135deg, #ff758c, #d44df2)"}}
+            >
               <div className="d-flex justify-content-between align-items-center mb-3">
                 <div className="d-flex gap-2">
                   <button
                     onClick={() => setSelectedDate(new Date())}
-                    className="btn btn-sm btn-primary"
+                    className="btn btn-sm btn-outline-light"
                   >
                     Today
                   </button>
@@ -302,7 +304,7 @@ const Statistics = () => {
                         onClick={() =>
                           setSelectedDate(subMonths(selectedDate, 1))
                         }
-                        className="btn btn-sm btn-light"
+                        className="btn btn-sm btn-outline-light"
                       >
                         &lt;
                       </button>
@@ -310,7 +312,7 @@ const Statistics = () => {
                         onClick={() =>
                           setSelectedDate(addMonths(selectedDate, 1))
                         }
-                        className="btn btn-sm btn-light"
+                        className="btn btn-sm btn-outline-light"
                       >
                         &gt;
                       </button>

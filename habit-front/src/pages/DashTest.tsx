@@ -119,10 +119,6 @@ useEffect(() => {
       const streakLogResponse = await axios.get("http://localhost:3000/api/streaklog", {
         params: { habit_id, user_id },
       });
-      
-      // await axios.put("http://localhost:3000/api/streaklog", {
-      //    user_id, habit_id, status, date
-      // });
 
       console.log('Get from streaklog:', {
                 user_id: user_id,
@@ -132,11 +128,11 @@ useEffect(() => {
               });
       const updatedStreak = streakLogResponse.data.streak_count;
 
-      // const rewardsResponse = await axios.put("http://localhost:3000/api/rewards", {
-      //   user_id,
-      //   habit_id,
-      // });
-      // console.log("Rewards Updated:", rewardsResponse.data);  
+      const rewardsResponse = await axios.put("http://localhost:3000/api/rewards", {
+        user_id,
+        habit_id,
+      });
+      console.log("Rewards Updated:", rewardsResponse.data);  
       
       setHabits((prevHabits) =>
         prevHabits.map((habit) =>
@@ -144,8 +140,8 @@ useEffect(() => {
             ? { ...habit, 
               status: newStatus, 
               streak: updatedStreak,
-              // points: rewardsResponse.data.pointsEarned, 
-              // badges: rewardsResponse.data.badges
+              points: rewardsResponse.data.pointsEarned, 
+              badges: rewardsResponse.data.badges
               }
             : habit
         )

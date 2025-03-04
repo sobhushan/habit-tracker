@@ -351,7 +351,16 @@ const Habitview: React.FC<Props> = ({ value = new Date(), onChange, user_id, vie
   // const emptySlotsEnd = Array(totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7)).fill(null);
 
   return (
-    <div className="w-full flex flex-col items-center bg-pink-200">
+    <div className="w-full flex flex-col items-center"
+      // style={{ background: "linear-gradient(135deg, #fbcfe8, #e9d5ff)"}}
+      style={{ 
+        background: "linear-gradient(135deg, #fbcfe8, #e9d5ff)", 
+        backdropFilter: "blur(10px)", 
+        borderRadius: "15px", 
+        padding: "15px", 
+        boxShadow: "0 4px 10px rgba(0, 0, 0, 0.2)",
+      }}
+      >
       <div className="w-full max-w-5xl border p-4">
 
         {/* Week Days */}

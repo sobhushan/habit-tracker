@@ -11,15 +11,22 @@ const pool = mysql.createPool({
   user: 'root',
   password: 'somy@B2002', // Replace with your MySQL password
   database: 'habit_tracker',
+  waitForConnections: true, // Prevents overload
+  connectionLimit: 10, // Limits simultaneous connections
+  queueLimit: 0, // Ensures requests are queued
 });
 
 // Test MySQL connection
 const testConnection = async () => {
+  let connection;
   try {
-    const [rows] = await pool.query('SELECT 1'); 
-    console.log('Connected to MySQL database!');
+    connection = await pool.getConnection(); // Get a single connection
+    await connection.query('SELECT 1'); // Run test query
+    console.log('✅ Connected to MySQL database!');
   } catch (error) {
-    console.error('Error connecting to MySQL database:', error);
+    console.error('❌ Error connecting to MySQL database:', error);
+  } finally {
+    if (connection) connection.release(); // ✅ Release only the individual connection
   }
 };
 testConnection();

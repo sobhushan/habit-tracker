@@ -4,6 +4,109 @@ import pool from "@/app/auth";
 
 
 
+// export async function GET(req: NextRequest) {
+//     const { searchParams } = new URL(req.url);
+//     const user_id = searchParams.get("user_id");
+//     const habit_id = searchParams.get("habit_id");
+
+//     if (!user_id || !habit_id) {
+//         return NextResponse.json({ error: "Missing user_id or habit_id" }, { status: 400 });
+//     }
+
+//     try {
+//         // Fetch the latest habit status
+//         const [latestHabitLog]: any = await pool.query(
+//             "SELECT status FROM habitlog WHERE user_id = ? AND habit_id = ? ORDER BY date DESC LIMIT 1",
+//             [user_id, habit_id]
+//         );
+
+//         // If latest status is not "Completed", streak is 0
+//         if (!latestHabitLog.length || latestHabitLog[0].status !== "Completed") {
+//             return NextResponse.json({ message: "Streak data fetched successfully", streak_count: 1 });
+//         }
+
+//         // Count consecutive "Completed" days for streak
+//         // const [streakResult]: any = await pool.query(
+//         //     `WITH habit_dates AS (
+//         //         SELECT date, status,
+//         //                LAG(date) OVER (ORDER BY date DESC) AS prev_date
+//         //         FROM habitlog
+//         //         WHERE user_id = ? AND habit_id = ?
+//         //     )
+//         //     SELECT COUNT(*) AS streak_count
+//         //     FROM habit_dates
+//         //     WHERE status = 'Completed'
+//         //     AND (prev_date IS NULL OR DATEDIFF(prev_date, date) = 1);`,
+//         //     [user_id, habit_id]
+//         // );
+
+//         const [streakResult]: any = await pool.query(
+//             `WITH RECURSIVE Streaks AS (
+//                 SELECT date, status, 1 AS streak_count
+//                 FROM habitlog
+//                 WHERE user_id = ? AND habit_id = ? AND status = 'Completed'
+                
+//                 UNION ALL
+                
+//                 SELECT h.date, h.status, s.streak_count + 1
+//                 FROM habitlog h
+//                 JOIN Streaks s ON DATEDIFF(s.date, h.date) = 1
+//                 WHERE h.user_id = ? AND h.habit_id = ? AND h.status = 'Completed'
+//             )
+//             SELECT MAX(streak_count) AS streak_count FROM Streaks;`,
+//             [user_id, habit_id, user_id, habit_id]
+//         );
+        
+//         console.log("streaklog GET: ", streakResult);
+//         return NextResponse.json({
+//             message: "Streak data fetched successfully",
+//             streak_count: streakResult[0].streak_count || 0
+//         });
+//     } catch (error) {
+//         console.error("Error fetching streak data:", error);
+//         return NextResponse.json({ error: "Failed to fetch streak data" }, { status: 500 });
+//     }
+// }
+
+// export async function PUT(req: NextRequest) {
+//     try {
+//         const { user_id, habit_id, status, date } = await req.json();
+
+//         if (!user_id || !habit_id || !status || !date) {
+//             return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+//         }
+
+//         // Check if an entry already exists for the habit and user on the given date
+//         const [existingEntry]: any = await pool.query(
+//             "SELECT * FROM streaklog WHERE user_id = ? AND habit_id = ? AND last_completed = ?",
+//             [user_id, habit_id, date]
+//         );
+
+//         if (existingEntry.length > 0) {
+//             // Update the existing streak entry
+//             await pool.query(
+//                 `UPDATE streaklog 
+//                  SET streak_count = ?, last_completed = ?, streak_start_date = ? 
+//                  WHERE user_id = ? AND habit_id = ? AND last_completed = ?`,
+//                 [existingEntry[0].streak_count + (status === "Completed" ? 1 : 0), date, existingEntry[0].streak_start_date, user_id, habit_id, date]
+//             );
+//         } else {
+//             // Insert a new entry if none exists for the date
+//             await pool.query(
+//                 `INSERT INTO streaklog (user_id, habit_id, streak_count, last_completed, streak_start_date) 
+//                  VALUES (?, ?, ?, ?, ?)`,
+//                 [user_id, habit_id, status === "Completed" ? 1 : 0, date, date]
+//             );
+//         }
+
+//         return NextResponse.json({ message: "Streak log updated successfully" });
+//     } catch (error) {
+//         console.error("Error updating streak log:", error);
+//         return NextResponse.json({ error: "Failed to update streak log" }, { status: 500 });
+//     }
+// }
+//===========================================================================================
+
 export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const user_id = searchParams.get("user_id");
@@ -14,79 +117,59 @@ export async function GET(req: NextRequest) {
     }
 
     try {
-        // Fetch the latest habit status
-        const [latestHabitLog]: any = await pool.query(
-            "SELECT status FROM habitlog WHERE user_id = ? AND habit_id = ? ORDER BY date DESC LIMIT 1",
+        // Fetch latest completed habit entry
+        const [latestCompleted]: any = await pool.query(
+            `SELECT date FROM habitlog 
+             WHERE user_id = ? AND habit_id = ? AND status = 'Completed'
+             ORDER BY date DESC LIMIT 1`,
             [user_id, habit_id]
         );
 
-        // If latest status is not "Completed", streak is 0
-        if (!latestHabitLog.length || latestHabitLog[0].status !== "Completed") {
-            return NextResponse.json({ message: "Streak data fetched successfully", streak_count: 1 });
+        if (!latestCompleted.length) {
+            return NextResponse.json({ message: "No completed habits found", streak_count: 0 });
         }
 
-        // Count consecutive "Completed" days for streak
+        const lastCompletedDate = latestCompleted[0].date;
+
+        // Calculate streak by counting consecutive completed days
         const [streakResult]: any = await pool.query(
-            `WITH habit_dates AS (
-                SELECT date, status,
-                       LAG(date) OVER (ORDER BY date DESC) AS prev_date
-                FROM habitlog
-                WHERE user_id = ? AND habit_id = ?
-            )
-            SELECT COUNT(*) AS streak_count
-            FROM habit_dates
-            WHERE status = 'Completed'
-            AND (prev_date IS NULL OR DATEDIFF(prev_date, date) = 1);`,
+            `SELECT COUNT(*) AS streak_count FROM (
+                SELECT date, 
+                LAG(date) OVER (ORDER BY date DESC) AS prev_date 
+                FROM habitlog 
+                WHERE user_id = ? AND habit_id = ? AND status = 'Completed'
+            ) AS habit_streaks
+            WHERE prev_date IS NULL OR DATEDIFF(prev_date, date) = 1;`,
             [user_id, habit_id]
         );
-        console.log("streaklog GET: ", streakResult);
+
+        const newStreakCount = streakResult[0]?.streak_count || 0;
+
+        // Update the streaklog table
+        await pool.query(
+            `INSERT INTO streaklog (user_id, habit_id, streak_count, last_completed, streak_start_date)
+             VALUES (?, ?, ?, ?, ?) 
+             ON DUPLICATE KEY UPDATE 
+             streak_count = VALUES(streak_count), 
+             last_completed = VALUES(last_completed);`,
+            [user_id, habit_id, newStreakCount, lastCompletedDate, lastCompletedDate]
+        );
+
         return NextResponse.json({
-            message: "Streak data fetched successfully",
-            streak_count: streakResult[0].streak_count || 0
+            message: "Streak data fetched and updated successfully",
+            streak_count: newStreakCount
         });
+
     } catch (error) {
-        console.error("Error fetching streak data:", error);
+        console.error("Error fetching or updating streak data:", error);
         return NextResponse.json({ error: "Failed to fetch streak data" }, { status: 500 });
     }
 }
 
-export async function PUT(req: NextRequest) {
-    try {
-        const { user_id, habit_id, status, date } = await req.json();
 
-        if (!user_id || !habit_id || !status || !date) {
-            return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
-        }
 
-        // Check if an entry already exists for the habit and user on the given date
-        const [existingEntry]: any = await pool.query(
-            "SELECT * FROM streaklog WHERE user_id = ? AND habit_id = ? AND last_completed = ?",
-            [user_id, habit_id, date]
-        );
 
-        if (existingEntry.length > 0) {
-            // Update the existing streak entry
-            await pool.query(
-                `UPDATE streaklog 
-                 SET streak_count = ?, last_completed = ?, streak_start_date = ? 
-                 WHERE user_id = ? AND habit_id = ? AND last_completed = ?`,
-                [existingEntry[0].streak_count + (status === "Completed" ? 1 : 0), date, existingEntry[0].streak_start_date, user_id, habit_id, date]
-            );
-        } else {
-            // Insert a new entry if none exists for the date
-            await pool.query(
-                `INSERT INTO streaklog (user_id, habit_id, streak_count, last_completed, streak_start_date) 
-                 VALUES (?, ?, ?, ?, ?)`,
-                [user_id, habit_id, status === "Completed" ? 1 : 0, date, date]
-            );
-        }
 
-        return NextResponse.json({ message: "Streak log updated successfully" });
-    } catch (error) {
-        console.error("Error updating streak log:", error);
-        return NextResponse.json({ error: "Failed to update streak log" }, { status: 500 });
-    }
-}
 
 //commented out functions just for future
 // export async function GET(req: NextRequest) {
