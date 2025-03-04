@@ -5,7 +5,8 @@ import Signup from './pages/Signup';
 // import Dashboard from './pages/Dashboard';
 import Dashboard from './pages/DashTest';
 import Statistics from './pages/Statistics'
-import Rewards from './pages/Rewards';
+// import Rewards from './pages/Rewards';
+import Rewards from './pages/rewardTest';
 import EventScheduler from './components/EventScheduler';
 
 // import EventScheduler from './components/eventTest';

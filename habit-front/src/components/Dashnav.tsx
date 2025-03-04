@@ -160,7 +160,7 @@
 
 ///============================================
 import { Link } from "react-router-dom";
-import { Navbar, Form, FormControl, Dropdown } from "react-bootstrap";
+import { Navbar, Form, FormControl, Dropdown, Button } from "react-bootstrap";
 
 interface DashnavProps {
   setSearchTerm: (term: string) => void;
@@ -169,6 +169,14 @@ interface DashnavProps {
 const Dashnav: React.FC<DashnavProps> = ({ setSearchTerm }) => {
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
+  };
+
+  // Logout Function
+  const handleLogout = () => {
+    localStorage.removeItem("username");
+    localStorage.removeItem("user_id");
+    alert("Logging out!");
+    window.location.href = "/";
   };
 
   return (
@@ -218,7 +226,9 @@ const Dashnav: React.FC<DashnavProps> = ({ setSearchTerm }) => {
             <Dropdown.Item as={Link} to="/statistics">Statistics</Dropdown.Item>
             <Dropdown.Item as={Link} to="/rewards">Rewards</Dropdown.Item>
             <Dropdown.Divider />
-            <Dropdown.Item className="material-symbols-outlined" as={Link} to="/">logout</Dropdown.Item>
+            <Dropdown.Item as={Button} onClick={handleLogout}>
+              <span className="material-symbols-outlined">logout</span>
+            </Dropdown.Item>
           </Dropdown.Menu>
         </Dropdown>
       </div>

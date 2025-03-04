@@ -23,7 +23,6 @@ const Rewards = () => {
     labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
     datasets: [{ label: "Habits Completed", data: [0, 0, 0, 0, 0, 0, 0], backgroundColor: "#17a2b8" }],
   });
-
   const [, setSearchTerm] = useState("");
 
   useEffect(() => {
@@ -70,6 +69,8 @@ const Rewards = () => {
         });
       })
       .catch((error) => console.error("Error fetching weekly habit data:", error));
+
+
   }, []);
 
   return (
@@ -79,7 +80,10 @@ const Rewards = () => {
       backgroundSize: "cover",
       backgroundPosition: "center",
       // border: "2px solid #8B4513",
-      boxShadow: "4px 4px 10px rgba(0, 0, 0, 0.2)"
+      boxShadow: "4px 4px 10px rgba(0, 0, 0, 0.2)",
+      left:0,
+      right :"0",
+      position:"absolute",
     }}>
       <Dashnav setSearchTerm={setSearchTerm}/>
       <Container className="mt-4">

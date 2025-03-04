@@ -17,8 +17,35 @@ const Dashboard = () => {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedStatus, setSelectedStatus] = useState("All");
   const [expandedHabitId, setExpandedHabitId] = useState<number | null>(null);
-
   const [searchTerm, setSearchTerm] = useState("");
+
+  const [refreshTrigger, setRefreshTrigger] = useState(false);
+const [habitProgress, setHabitProgress] = useState({ completed: 0, pending: 0, progress: 0 });
+
+const refreshProgress = () => {
+  setRefreshTrigger((prev) => !prev); // This will trigger a re-fetch in useEffect
+};
+
+// Fetch habit progress when triggered
+useEffect(() => {
+  const fetchHabitProgress = async () => {
+    try {
+      const response = await axios.get(`http://localhost:3000/api/charts/donutchart?user_id=${user_id}&t=${new Date().getTime()}`);
+      console.log("Fetched Progress Data:", response.data);
+      const { completed, pending } = response.data;
+      const total = completed + pending;
+      const progressPercentage = total > 0 ? (completed / total) * 100 : 0;
+
+      setHabitProgress({ completed, pending, progress: progressPercentage });
+    } catch (error) {
+      console.error("Error fetching progress data:", error);
+    }
+  };
+
+  fetchHabitProgress();
+}, [refreshTrigger, user_id]); // Triggers re-fetch on refreshTrigger update
+
+
 
   const toggleExpandHabit = (habitId: number) => {
     setExpandedHabitId(expandedHabitId === habitId ? null : habitId);
@@ -104,14 +131,27 @@ const Dashboard = () => {
                 streak: streakLogResponse.data
               });
       const updatedStreak = streakLogResponse.data.streak_count;
+
+      // const rewardsResponse = await axios.put("http://localhost:3000/api/rewards", {
+      //   user_id,
+      //   habit_id,
+      // });
+      // console.log("Rewards Updated:", rewardsResponse.data);  
       
       setHabits((prevHabits) =>
         prevHabits.map((habit) =>
           habit.habit_id === habit_id
-            ? { ...habit, status: newStatus, streak: updatedStreak }
+            ? { ...habit, 
+              status: newStatus, 
+              streak: updatedStreak,
+              // points: rewardsResponse.data.pointsEarned, 
+              // badges: rewardsResponse.data.badges
+              }
             : habit
         )
       );
+      refreshProgress();
+      
     } catch (error) {
       console.error("Error updating habit status:", error);
     }
@@ -186,16 +226,26 @@ const Dashboard = () => {
       backgroundImage: "url('/images/wood-texture.jpg')",
       backgroundSize: "cover",
       backgroundPosition: "center",
-      // border: "2px solid #8B4513",
       boxShadow: "4px 4px 10px rgba(0, 0, 0, 0.2)",
       minHeight: "100vh",
+      left:0,
+      right:0,
+      position:"absolute"
     }}>
       <Dashnav setSearchTerm={setSearchTerm} />
       <div className="container-fluid">
         <div className="row">
           {/* Left Section (User Card) */}
 
-          <UserCard username={username} user_id={user_id} handleLogout={handleLogout} />
+          <UserCard
+            username={username}
+            user_id={user_id}
+            handleLogout={handleLogout}
+            refreshProgress={refreshProgress}
+            habitProgress={habitProgress} // Pass progress data
+          />
+
+
 
           {/* Right Section (Dashboard) */}
           <div className="col-md-8 mt-4 mb-4">

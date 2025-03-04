@@ -35,7 +35,7 @@ const Login = () => {
 
   return (
     <div
-      className="container-fluid position-relative"
+      className="container-fluid"
       style={{
         backgroundImage: 'url("/bg/bg3.jpg")',
         // backgroundImage: 'url("https://picsum.photos/1200/500")',
@@ -45,7 +45,9 @@ const Login = () => {
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        position: "relative",
+        left:"0",
+        right:0,
+        position: "absolute",
       }}
     >
       <Navbar />

@@ -18,6 +18,11 @@ export async function PUT(req: NextRequest) {
         "UPDATE habitlog SET status = ?, date = NOW() WHERE user_id = ? AND habit_id = ? AND DATE(date) = CURDATE()",
         [status, user_id, habit_id]
       );
+       // Update points in user_rewards
+      await pool.execute(
+       `UPDATE user_rewards SET points = points + 10 WHERE user_id = ?`,
+       [user_id]
+      );
       return NextResponse.json({ message: `Habit status updated to ${status}` });
     } else {
       // Insert a new log if no entry exists for today
@@ -50,3 +55,5 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: 'Failed to log habit completion' });
     }
   }
+
+  

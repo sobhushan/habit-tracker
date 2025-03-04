@@ -35,7 +35,7 @@ const Signup = () => {
 
   return (
     <div
-      className="container-fluid position-relative"
+      className="container-fluid"
       style={{
         // backgroundImage: 'url("https://picsum.photos/1200/500")',
         backgroundImage: 'url("/bg/bg2.jpg")',
@@ -45,7 +45,9 @@ const Signup = () => {
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        position: "relative",
+        left:"0",
+        right:0,
+        position: "absolute",
       }}
     >
       <Navbar />

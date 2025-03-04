@@ -4,41 +4,41 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 
 interface UserCardProps {
-    username: string | null;
-    user_id: string | null;
-    handleLogout: () => void;
-  } 
+  username: string | null;
+  user_id: string | null;
+  handleLogout: () => void;
+  refreshProgress: () => void; 
+  habitProgress: { completed: number; pending: number; progress: number };
+}
 
-  const UserCard: React.FC<UserCardProps> = ({ username, user_id, handleLogout }) => {
-  const [progress, setProgress] = useState(0); // Progress percentage
-  const [completed, setCompleted] = useState(0);
-  const [pending, setPending] = useState(0);
+  const UserCard: React.FC<UserCardProps> = ({ username, user_id, handleLogout, refreshProgress, habitProgress  }) => {
+  const [, setProgress] = useState(0); // Progress percentage
+  const [, setCompleted] = useState(0);
+  const [, setPending] = useState(0);
+
+  const fetchHabitProgress = async () => {
+    try {
+      const response = await axios.get(`http://localhost:3000/api/charts/donutchart?user_id=${user_id}&t=${new Date().getTime()}`);
+      console.log("Fetched Progress Data:", response.data);
+      const { completed, pending } = response.data;
+      const total = completed + pending;
+      const progressPercentage = total > 0 ? (completed / total) * 100 : 0;
+
+      setCompleted(completed);
+      setPending(pending);
+      setProgress(progressPercentage);
+    } catch (error) {
+      console.error("Error fetching progress data:", error);
+    }
+  };  
 
   useEffect(() => {
-    const user_id = localStorage.getItem("user_id");
-    if (!user_id) {
-      console.error("User ID is missing!");
-      return;
-    }
-    const fetchHabitProgress = async () => {
-      try {
-        const response = await axios.get(`http://localhost:3000/api/charts/donutchart?user_id=${user_id}`);
-        const { completed, pending } = response.data;
-
-        const total = completed + pending;
-        const progressPercentage = total > 0 ? (completed / total) * 100 : 0;
-
-        setCompleted(completed);
-        setPending(pending);
-        setProgress(progressPercentage);
-        console.log("PROGRESS:",response.data)
-      } catch (error) {
-        console.error("Error fetching progress data:", error);
-      }
-    };
-
     fetchHabitProgress();
-  }, [user_id]); // Runs whenever user_id changes
+  }, [user_id, refreshProgress]);
+
+  // useEffect(() => {
+  //   refreshProgress();  // 👈 Refresh when triggered
+  // }, [refreshProgress]);
 
   return (
     <div className="col-md-4 mt-4">
@@ -54,15 +54,15 @@ interface UserCardProps {
 
         {/* 🏆 Dynamic Progress Bar */}
         <div className="mt-2 w-full px-3">
-          <h6>🏆 Progress: {Math.round(progress)}%</h6>
+          <h6>🏆 Progress: {Math.round(habitProgress.progress)}%</h6>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div 
               className="bg-green-500 h-2 rounded-full transition-all duration-500" 
-              style={{ width: `${progress}%` }}
+              style={{ width: `${habitProgress.progress}%` }}
             ></div>
           </div>
           <p className="text-xs mt-1 text-gray-600">
-            ✅ {completed} Completed | ⏳ {pending} Pending
+          ✅ {habitProgress.completed} Completed | ⏳ {habitProgress.pending} Pending
           </p>
         </div>
 

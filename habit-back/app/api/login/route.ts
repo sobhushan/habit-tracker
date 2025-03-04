@@ -1,6 +1,9 @@
 //app/api/login/route.ts
 import { NextResponse, NextRequest } from "next/server";
 import pool from "@/app/auth";
+import jwt from 'jsonwebtoken';
+
+const SECRET_KEY = "qwerty";
 
 export async function POST(request: NextRequest) {
   const { email, password } = await request.json();
@@ -12,7 +15,9 @@ export async function POST(request: NextRequest) {
     );
     if (user.length > 0) {
       // Return user_id, username, and email after successful login
-      return NextResponse.json({
+      const token = jwt.sign({ email }, SECRET_KEY, { expiresIn: '1h' });
+      // return Response.json({token, message: `Login successful! Welcome, ${username}`,});
+      return NextResponse.json({token,
         message: `Login successful! Welcome, ${user[0].username}`,
         user_id: user[0].id,
         username: user[0].username,
