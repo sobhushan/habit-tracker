@@ -20,7 +20,7 @@ const Login = () => {
       
       alert(response.data.message);
       if (response.data.message.includes("Login successful")) {
-        // Store user_id and username in localStorage
+        localStorage.setItem("token", response.data.token);
         localStorage.setItem("user_id", response.data.user_id);
         localStorage.setItem("username", response.data.username);
         // alert("Login Successful");

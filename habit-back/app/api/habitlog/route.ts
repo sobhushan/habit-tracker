@@ -1,9 +1,19 @@
 // //app/api/habitlog/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import pool from "@/app/auth";
+import { verifyToken } from "@/app/auth";
 
 export async function PUT(req: NextRequest) {
-  const { user_id, habit_id, status} = await req.json();
+  // Verify JWT Token
+  const user = verifyToken(req);
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { habit_id, status } = await req.json();
+  const user_id = user.user_id; // Now correctly using user_id from the token
+
+  // const { user_id, habit_id, status} = await req.json();
 
   try {
     const [existingLog]: any = await pool.query(
